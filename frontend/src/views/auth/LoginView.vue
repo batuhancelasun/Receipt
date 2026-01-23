@@ -48,11 +48,8 @@
       </form>
       
       <div class="mt-6 text-center">
-        <p class="text-gray-300 dark:text-gray-300 text-gray-600 text-sm">
-          Don't have an account?
-          <router-link to="/register" class="text-primary-400 hover:text-primary-300 font-semibold">
-            Register
-          </router-link>
+        <p class="text-gray-400 dark:text-gray-400 text-gray-500 text-sm">
+          📧 Need an account? Contact your administrator
         </p>
       </div>
     </div>

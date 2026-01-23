@@ -30,6 +30,7 @@ class UserModel(BaseModel):
     username: str
     email: str
     hashed_password: str
+    is_admin: bool = False
     created_at: datetime = Field(default_factory=datetime.utcnow)
     
     class Config:

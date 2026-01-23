@@ -54,13 +54,23 @@ const router = createRouter({
 })
 
 // Navigation guards
-router.beforeEach((to, from, next) => {
+router.beforeEach(async (to, from, next) => {
     const authStore = useAuthStore()
 
     if (to.meta.requiresAuth && !authStore.isAuthenticated) {
         next('/login')
     } else if (to.meta.guest && authStore.isAuthenticated) {
         next('/')
+    } else if (to.meta.requiresAdmin) {
+        // Check if user is admin
+        if (!authStore.user) {
+            await authStore.fetchUser()
+        }
+        if (!authStore.user?.is_admin) {
+            next('/')
+        } else {
+            next()
+        }
     } else {
         next()
     }

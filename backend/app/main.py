@@ -18,6 +18,11 @@ async def lifespan(app: FastAPI):
     """Application lifespan manager"""
     # Startup
     await connect_to_mongo()
+    
+    # Create admin user if environment variables are set
+    from .init_admin import create_admin_user
+    await create_admin_user()
+    
     yield
     # Shutdown
     await close_mongo_connection()

@@ -8,8 +8,9 @@
             <h1 class="text-2xl font-bold text-white dark:text-white text-gray-900">Receipt</h1>
             <div class="hidden md:flex space-x-4">
               <router-link to="/" class="nav-link">Dashboard</router-link>
-              <router-link to="/ scan" class="nav-link">Scan</router-link>
+              <router-link to="/scan" class="nav-link">Scan</router-link>
               <router-link to="/transactions" class="nav-link">Transactions</router-link>
+              <router-link v-if="authStore.user?.is_admin" to="/admin/users" class="nav-link">Users</router-link>
             </div>
           </div>
           <div class="flex items-center space-x-4">

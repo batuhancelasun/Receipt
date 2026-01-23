@@ -20,6 +20,14 @@ class UserLogin(BaseModel):
     password: str
 
 
+class UserCreateByAdmin(BaseModel):
+    """Admin creates user schema"""
+    username: str = Field(..., min_length=3, max_length=50)
+    email: EmailStr
+    password: str = Field(..., min_length=8)
+    is_admin: bool = False
+
+
 class Token(BaseModel):
     """JWT token response"""
     access_token: str
