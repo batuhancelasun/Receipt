@@ -3,23 +3,17 @@ import { useAuthStore } from '../stores/auth'
 
 // Lazy load views
 const LoginView = () => import('../views/auth/LoginView.vue')
-const RegisterView = () => import('../views/auth/RegisterView.vue')
 const DashboardView = () => import('../views/DashboardView.vue')
 const ReceiptScanView = () => import('../views/ReceiptScanView.vue')
 const TransactionsView = () => import('../views/TransactionsView.vue')
 const SettingsView = () => import('../views/SettingsView.vue')
+const AdminUsersView = () => import('../views/admin/AdminUsersView.vue')
 
 const routes = [
     {
         path: '/login',
         name: 'Login',
         component: LoginView,
-        meta: { guest: true }
-    },
-    {
-        path: '/register',
-        name: 'Register',
-        component: RegisterView,
         meta: { guest: true }
     },
     {
@@ -45,6 +39,12 @@ const routes = [
         name: 'Settings',
         component: SettingsView,
         meta: { requiresAuth: true }
+    },
+    {
+        path: '/admin/users',
+        name: 'AdminUsers',
+        component: AdminUsersView,
+        meta: { requiresAuth: true, requiresAdmin: true }
     }
 ]
 
