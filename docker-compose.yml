@@ -1,0 +1,58 @@
+version: '3.8'
+
+services:
+  # MongoDB Database
+  mongodb:
+    image: mongo:4.4
+    container_name: receipt-mongodb
+    restart: unless-stopped
+    environment:
+      MONGO_INITDB_DATABASE: receipt_tracker
+    volumes:
+      - mongodb_data:/data/db
+    networks:
+      - receipt-network
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok' | mongo localhost:27017/test --quiet
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Unified Application (Vue + FastAPI)
+  app:
+    image: batubaba619/receipt:latest
+    container_name: receipt-app
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      - MONGODB_URL=mongodb://mongodb:27017
+      - MONGODB_DB_NAME=receipt_tracker
+      - JWT_SECRET_KEY=${JWT_SECRET_KEY:-your-secret-key-change-in-production}
+      - DEFAULT_CURRENCY=€
+      - ENVIRONMENT=production
+    volumes:
+      - uploads:/app/uploads
+    networks:
+      - receipt-network
+    depends_on:
+      mongodb:
+        condition: service_healthy
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 256M
+
+networks:
+  receipt-network:
+    driver: bridge
+
+volumes:
+  mongodb_data:
+    driver: local
+  uploads:
+    driver: local
