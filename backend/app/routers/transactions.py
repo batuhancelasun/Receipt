@@ -296,10 +296,10 @@ async def get_analytics(
     """
     Get analytics for a period (daily, monthly, yearly)
     """
-    if period not in ["daily", "monthly", "yearly"]:
+    if period not in ["daily", "monthly", "yearly", "all"]:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Period must be 'daily', 'monthly', or 'yearly'"
+            detail="Period must be 'daily', 'monthly', 'yearly', or 'all'"
         )
     
     transactions_collection = await get_collection("transactions")

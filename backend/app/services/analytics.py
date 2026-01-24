@@ -121,8 +121,11 @@ def get_period_dates(period: str) -> tuple[datetime, datetime]:
         else:
             end = now.replace(month=now.month + 1, day=1) - timedelta(days=1)
         end = end.replace(hour=23, minute=59, second=59, microsecond=999999)
-    else:  # yearly
+    elif period == "yearly":
         start = now.replace(month=1, day=1, hour=0, minute=0, second=0, microsecond=0)
         end = now.replace(month=12, day=31, hour=23, minute=59, second=59, microsecond=999999)
+    else:  # all
+        start = datetime(2000, 1, 1)
+        end = datetime(2100, 12, 31, 23, 59, 59)
     
     return start, end

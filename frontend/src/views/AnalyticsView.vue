@@ -112,7 +112,8 @@ Chart.register(...registerables)
 const periods = [
   { label: 'Daily', value: 'daily' },
   { label: 'Monthly', value: 'monthly' },
-  { label: 'Yearly', value: 'yearly' }
+  { label: 'Yearly', value: 'yearly' },
+  { label: 'All Time', value: 'all' }
 ]
 
 const selectedPeriod = ref('monthly')
