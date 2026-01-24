@@ -115,6 +115,16 @@
   color: #f1f5f9 !important;
 }
 
+/* Dark mode option elements - ensure visibility */
+.dark select option {
+  color: #0f172a;
+  background: #1e293b;
+}
+
+.dark select {
+  background-color: rgba(30, 41, 59, 0.9);
+}
+
 /* Animations */
 @keyframes fadeIn {
   from {
