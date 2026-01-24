@@ -142,18 +142,37 @@ async function scanReceipt() {
 
 async function createTransaction() {
   try {
+    // Parse date from AI result (could be YYYY-MM-DD string)
+    let transactionDate = result.value.date
+    if (transactionDate && typeof transactionDate === 'string') {
+      // Convert to ISO datetime string
+      transactionDate = new Date(transactionDate).toISOString()
+    } else {
+      transactionDate = new Date().toISOString()
+    }
+    
+    // Map items to match backend schema
+    const items = (result.value.items || []).map(item => ({
+      name: item.name || 'Unknown item',
+      quantity: parseFloat(item.quantity) || 1.0,
+      unit_price: parseFloat(item.unit_price) || 0,
+      total_price: parseFloat(item.total_price) || 0
+    }))
+    
     await api.post('/transactions/', {
       type: 'expense',
-      amount: result.value.total_amount,
+      amount: parseFloat(result.value.total_amount) || 0,
       currency: result.value.currency || '€',
-      merchant_name: result.value.merchant_name,
-      date: result.value.date,
-      items: result.value.items || []
+      merchant_name: result.value.merchant_name || 'Unknown',
+      date: transactionDate,
+      items: items,
+      description: `Receipt from ${result.value.merchant_name || 'unknown store'}`
     })
     
     router.push('/transactions')
   } catch (err) {
-    error.value = 'Failed to create transaction'
+    console.error('Transaction creation error:', err.response?.data || err)
+    error.value = 'Failed to create transaction: ' + (err.response?.data?.detail || 'Unknown error')
   }
 }
 </script>
