@@ -98,32 +98,43 @@ async def calculate_category_breakdown(
     return breakdown
 
 
-def get_period_dates(period: str) -> tuple[datetime, datetime]:
+def get_period_dates(
+    period: str,
+    year: int = None,
+    month: int = None
+) -> tuple[datetime, datetime]:
     """
     Get start and end dates for a period type
     
     Args:
-        period: "daily", "monthly", or "yearly"
+        period: "daily", "monthly", "yearly", or "all"
+        year: Optional specific year
+        month: Optional specific month (1-12)
         
     Returns:
         Tuple of (start_date, end_date)
     """
     now = datetime.utcnow()
+    target_year = year if year is not None else now.year
+    target_month = month if month is not None else now.month
     
     if period == "daily":
+        # For daily, we stick to "today" unless we implement a date picker.
+        # But if year/month are passed without day, it doesn't make sense for "daily".
+        # We'll just ignore year/month for daily for now or assume today.
         start = now.replace(hour=0, minute=0, second=0, microsecond=0)
         end = now.replace(hour=23, minute=59, second=59, microsecond=999999)
     elif period == "monthly":
-        start = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+        start = datetime(target_year, target_month, 1)
         # Get last day of month
-        if now.month == 12:
-            end = now.replace(year=now.year + 1, month=1, day=1) - timedelta(days=1)
+        if target_month == 12:
+            end = datetime(target_year + 1, 1, 1) - timedelta(days=1)
         else:
-            end = now.replace(month=now.month + 1, day=1) - timedelta(days=1)
+            end = datetime(target_year, target_month + 1, 1) - timedelta(days=1)
         end = end.replace(hour=23, minute=59, second=59, microsecond=999999)
     elif period == "yearly":
-        start = now.replace(month=1, day=1, hour=0, minute=0, second=0, microsecond=0)
-        end = now.replace(month=12, day=31, hour=23, minute=59, second=59, microsecond=999999)
+        start = datetime(target_year, 1, 1)
+        end = datetime(target_year, 12, 31, 23, 59, 59, 999999)
     else:  # all
         start = datetime(2000, 1, 1)
         end = datetime(2100, 12, 31, 23, 59, 59)

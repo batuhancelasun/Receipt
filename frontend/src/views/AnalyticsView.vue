@@ -6,22 +6,45 @@
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <h1 class="text-3xl font-bold text-white dark:text-white text-gray-900 mb-8">Analytics</h1>
       
-      <!-- Period Selector -->
+      <!-- Date Filters -->
       <div class="glass-dark dark:glass-dark glass-light rounded-2xl p-6 mb-8">
-        <div class="flex flex-wrap gap-3">
-          <button
-            v-for="p in periods"
-            :key="p.value"
-            @click="selectedPeriod = p.value"
-            :class="[
-              'px-6 py-3 rounded-xl font-medium transition-all',
-              selectedPeriod === p.value
-                ? 'bg-primary-500 text-white shadow-lg shadow-primary-500/50'
-                : 'bg-white/5 dark:bg-white/5 bg-gray-100/50 text-gray-300 dark:text-gray-300 text-gray-700 hover:bg-white/10'
-            ]"
-          >
-            {{ p.label }}
-          </button>
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <!-- Period Selector -->
+          <div class="flex flex-wrap gap-2">
+            <button
+              v-for="p in periods"
+              :key="p.value"
+              @click="selectedPeriod = p.value"
+              :class="[
+                'px-4 py-2 rounded-lg font-medium transition-all',
+                selectedPeriod === p.value
+                  ? 'bg-primary-500 text-white shadow-lg shadow-primary-500/50'
+                  : 'bg-white/5 dark:bg-white/5 bg-gray-100/50 text-gray-300 dark:text-gray-300 text-gray-700 hover:bg-white/10'
+              ]"
+            >
+              {{ p.label }}
+            </button>
+          </div>
+          
+          <!-- Month/Year Selectors -->
+          <div class="flex gap-3" v-if="selectedPeriod !== 'daily' && selectedPeriod !== 'all'">
+            <select
+              v-if="selectedPeriod === 'monthly'"
+              v-model="selectedMonth"
+              @change="fetchAnalytics"
+              class="px-4 py-2 bg-white/5 dark:bg-white/5 bg-gray-100/50 border border-white/10 rounded-lg text-white dark:text-white text-gray-900 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+            >
+              <option v-for="(m, i) in months" :key="i" :value="i + 1">{{ m }}</option>
+            </select>
+            
+            <select
+              v-model="selectedYear"
+              @change="fetchAnalytics"
+              class="px-4 py-2 bg-white/5 dark:bg-white/5 bg-gray-100/50 border border-white/10 rounded-lg text-white dark:text-white text-gray-900 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+            >
+              <option v-for="year in years" :key="year" :value="year">{{ year }}</option>
+            </select>
+          </div>
         </div>
       </div>
 
@@ -48,6 +71,7 @@
       </div>
 
       <!-- Charts -->
+      <!-- ... (charts section identical) ... -->
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
         <!-- Income Breakdown -->
         <div class="glass-dark dark:glass-dark glass-light rounded-2xl p-6">
@@ -70,7 +94,20 @@
 
       <!-- Category Details -->
       <div class="glass-dark dark:glass-dark glass-light rounded-2xl p-6">
-        <h2 class="text-xl font-semibold text-white dark:text-white text-gray-900 mb-4">Category Breakdown</h2>
+        <div class="flex items-center justify-between mb-6">
+          <h2 class="text-xl font-semibold text-white dark:text-white text-gray-900">Category Breakdown</h2>
+          
+          <!-- Sort Filter -->
+          <button 
+            @click="toggleSort"
+            class="flex items-center space-x-2 px-3 py-1.5 bg-white/5 dark:bg-white/5 bg-gray-100/50 rounded-lg text-sm text-gray-300 hover:bg-white/10 transition-colors"
+          >
+            <span>Amount: {{ sortOrder === 'desc' ? 'High to Low' : 'Low to High' }}</span>
+            <svg class="w-4 h-4" :class="{ 'rotate-180': sortOrder === 'asc' }" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+            </svg>
+          </button>
+        </div>
         
         <div class="space-y-4">
           <div v-for="category in categoryList" :key="category.name" class="bg-white/5 dark:bg-white/5 bg-gray-100/50 rounded-lg p-4">
@@ -110,13 +147,29 @@ import StatCard from '../components/StatCard.vue'
 Chart.register(...registerables)
 
 const periods = [
-  { label: 'Daily', value: 'daily' },
   { label: 'Monthly', value: 'monthly' },
-  { label: 'Yearly', value: 'yearly' },
-  { label: 'All Time', value: 'all' }
+  { label: 'Yearly', value: 'yearly' }
 ]
 
 const selectedPeriod = ref('monthly')
+const selectedYear = ref(new Date().getFullYear())
+const selectedMonth = ref(new Date().getMonth() + 1)
+const sortOrder = ref('desc') // 'desc' or 'asc'
+
+const months = [
+  'January', 'February', 'March', 'April', 'May', 'June',
+  'July', 'August', 'September', 'October', 'November', 'December'
+]
+
+const years = computed(() => {
+  const currentYear = new Date().getFullYear()
+  const years = []
+  for (let i = 0; i < 10; i++) {
+    years.push(currentYear - i)
+  }
+  return years
+})
+
 const analyticsData = ref({
   stats: {
     total_income: 0,
@@ -128,6 +181,7 @@ const analyticsData = ref({
   income_breakdown: []
 })
 
+// ... (charts refs and logic same as before) ...
 const incomeChartRef = ref(null)
 const expenseChartRef = ref(null)
 let incomeChart = null
@@ -149,7 +203,7 @@ const categoryList = computed(() => {
       name: item.category_name,
       total: item.amount,
       percentage: item.percentage,
-      count: 0, // Backend doesn't provide count per category yet
+      count: 0, 
       type: 'income',
       color: item.color
     })),
@@ -157,15 +211,24 @@ const categoryList = computed(() => {
       name: item.category_name,
       total: item.amount,
       percentage: item.percentage,
-      count: 0, // Backend doesn't provide count per category yet
+      count: 0, 
       type: 'expense',
       color: item.color
     }))
   ]
   
-  return list.sort((a, b) => b.total - a.total)
+  return list.sort((a, b) => {
+    return sortOrder.value === 'desc' 
+      ? b.total - a.total
+      : a.total - b.total
+  })
 })
 
+function toggleSort() {
+  sortOrder.value = sortOrder.value === 'desc' ? 'asc' : 'desc'
+}
+
+// ... (formatCurrency, chartColors, createPieChart, destroyCharts, renderCharts logic same as before) ...
 const formatCurrency = (amount) => {
   const value = amount ?? 0
   return `€${value.toFixed(2)}`
@@ -249,7 +312,15 @@ function renderCharts() {
 
 async function fetchAnalytics() {
   try {
-    const response = await api.get(`/transactions/analytics/${selectedPeriod.value}`)
+    const params = {}
+    if (selectedPeriod.value === 'monthly' || selectedPeriod.value === 'yearly') {
+      params.year = selectedYear.value
+    }
+    if (selectedPeriod.value === 'monthly') {
+      params.month = selectedMonth.value
+    }
+    
+    const response = await api.get(`/transactions/analytics/${selectedPeriod.value}`, { params })
     analyticsData.value = response.data
     renderCharts()
   } catch (error) {

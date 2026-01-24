@@ -291,6 +291,8 @@ async def delete_transaction(
 @router.get("/analytics/{period}", response_model=AnalyticsResponse)
 async def get_analytics(
     period: str,
+    year: Optional[int] = Query(None, ge=2000, le=2100),
+    month: Optional[int] = Query(None, ge=1, le=12),
     user_id: str = Depends(get_current_user_id)
 ):
     """
@@ -306,7 +308,7 @@ async def get_analytics(
     categories_collection = await get_collection("categories")
     
     # Get date range
-    start_date, end_date = get_period_dates(period)
+    start_date, end_date = get_period_dates(period, year, month)
     
     # Get all transactions in period
     cursor = transactions_collection.find({
