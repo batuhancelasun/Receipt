@@ -40,11 +40,11 @@ COPY backend/app ./app
 # Copy built frontend to static directory
 COPY --from=frontend-builder /frontend/dist ./static
 
-# Create upload directory
-RUN mkdir -p /app/uploads && chown -R appuser:appuser /app
+# Create upload directory and set permissions
+RUN mkdir -p /app/uploads && chmod 777 /app/uploads
 
-# Switch to non-root user
-USER appuser
+# Create entrypoint script to fix permissions on mounted volumes
+RUN echo '#!/bin/sh\nchmod -R 777 /app/uploads 2>/dev/null || true\nexec "$@"' > /entrypoint.sh && chmod +x /entrypoint.sh
 
 # Expose port
 EXPOSE 8000
@@ -53,5 +53,7 @@ EXPOSE 8000
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
   CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:8000/api/health')"
 
-# Run application
+# Use entrypoint to fix permissions then run app
+ENTRYPOINT ["/entrypoint.sh"]
 CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+
