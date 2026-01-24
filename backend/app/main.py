@@ -2,8 +2,9 @@
 Receipt Tracker - FastAPI Backend
 Serves both the Vue.js frontend and REST API endpoints
 """
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 from motor.motor_asyncio import AsyncIOMotorClient
@@ -44,7 +45,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# API routes
+# API routes - these take priority
 app.include_router(auth.router, prefix="/api/auth", tags=["Authentication"])
 app.include_router(receipts.router, prefix="/api/receipts", tags=["Receipts"])
 app.include_router(transactions.router, prefix="/api/transactions", tags=["Transactions"])
@@ -57,28 +58,38 @@ async def health_check():
     return {"status": "healthy", "service": "receipt-tracker"}
 
 
-# SPA fallback - serve index.html for all non-API routes
-# This must be AFTER all API routes but BEFORE static file mounting
-from fastapi.responses import FileResponse
+# Mount static assets FIRST - before any catch-all route
+# This ensures JS, CSS, images are served correctly
+if os.path.exists("/app/static/assets"):
+    app.mount("/assets", StaticFiles(directory="/app/static/assets"), name="assets")
 
+# Serve favicon
+@app.get("/favicon.ico")
+async def favicon():
+    favicon_path = "/app/static/favicon.ico"
+    if os.path.exists(favicon_path):
+        return FileResponse(favicon_path)
+    raise HTTPException(status_code=404, detail="Favicon not found")
+
+
+# Root route - serve index.html
+@app.get("/")
+async def root():
+    """Serve Vue.js SPA root"""
+    index_path = "/app/static/index.html"
+    if os.path.exists(index_path):
+        return FileResponse(index_path)
+    return {"message": "Frontend not built yet"}
+
+
+# SPA fallback - serve index.html for all other client-side routes
+# This MUST be the last route definition
 @app.get("/{full_path:path}")
 async def serve_spa(full_path: str):
     """Serve Vue.js SPA for all non-API routes"""
-    # Don't serve static assets through this route
-    if full_path.startswith("api/"):
-        from fastapi import HTTPException
-        raise HTTPException(status_code=404, detail="Not Found")
-    
     index_path = "/app/static/index.html"
     if os.path.exists(index_path):
         return FileResponse(index_path)
     
     # Fallback for development
     return {"message": "Frontend not built yet"}
-
-
-# Serve Vue.js static files (built frontend) 
-# Assets like JS, CSS, images will be served from here
-if os.path.exists("/app/static"):
-    app.mount("/assets", StaticFiles(directory="/app/static/assets"), name="assets")
-
