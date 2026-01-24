@@ -4,6 +4,7 @@ import { useAuthStore } from '../stores/auth'
 // Lazy load views
 const LoginView = () => import('../views/auth/LoginView.vue')
 const DashboardView = () => import('../views/DashboardView.vue')
+const AnalyticsView = () => import('../views/AnalyticsView.vue')
 const ReceiptScanView = () => import('../views/ReceiptScanView.vue')
 const TransactionsView = () => import('../views/TransactionsView.vue')
 const SettingsView = () => import('../views/SettingsView.vue')
@@ -20,6 +21,12 @@ const routes = [
         path: '/',
         name: 'Dashboard',
         component: DashboardView,
+        meta: { requiresAuth: true }
+    },
+    {
+        path: '/analytics',
+        name: 'Analytics',
+        component: AnalyticsView,
         meta: { requiresAuth: true }
     },
     {

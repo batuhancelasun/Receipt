@@ -5,15 +5,17 @@
 /* Glassmorphism utilities */
 @layer utilities {
   .glass {
-    @apply bg-white/10 backdrop-blur-md border border-white/20;
+    @apply bg-white/10 backdrop-blur-xl border border-white/20 shadow-2xl;
   }
-  
+
   .glass-dark {
-    @apply bg-gray-900/40 backdrop-blur-md border border-gray-700/50;
+    @apply bg-gray-900/70 backdrop-blur-xl border border-white/10 shadow-2xl;
+    background: linear-gradient(135deg, rgba(15, 23, 42, 0.9) 0%, rgba(30, 41, 59, 0.8) 100%);
   }
-  
+
   .glass-light {
-    @apply bg-white/60 backdrop-blur-md border border-gray-200/50;
+    @apply bg-white/90 backdrop-blur-xl border border-gray-200/60 shadow-xl;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(248, 250, 252, 0.9) 100%);
   }
 }
 
@@ -21,35 +23,169 @@
 @layer base {
   * {
     scrollbar-width: thin;
-    scrollbar-color: rgba(155, 155, 155, 0.5) transparent;
+    scrollbar-color: rgba(100, 116, 139, 0.4) transparent;
   }
-  
+
   *::-webkit-scrollbar {
-    width: 8px;
+    width: 6px;
   }
-  
+
   *::-webkit-scrollbar-track {
     background: transparent;
   }
-  
+
   *::-webkit-scrollbar-thumb {
-    background-color: rgba(155, 155, 155, 0.5);
+    background-color: rgba(100, 116, 139, 0.4);
     border-radius: 20px;
   }
-  
+
+  *::-webkit-scrollbar-thumb:hover {
+    background-color: rgba(100, 116, 139, 0.6);
+  }
+
   body {
     @apply font-sans antialiased;
   }
 }
 
-/* Dark mode background */
+/* Dark mode - Premium deep gradient */
 .dark {
-  background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+  background: linear-gradient(160deg, #0a0f1a 0%, #111827 30%, #1e293b 60%, #0f172a 100%);
   min-height: 100vh;
+  color: #f1f5f9;
 }
 
-/* Light mode background */
+/* Add subtle noise texture overlay for dark mode */
+.dark::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+  opacity: 0.015;
+  pointer-events: none;
+  z-index: -1;
+}
+
+/* Light mode - Clean, professional gradient */
 .light {
-  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+  background: linear-gradient(160deg, #ffffff 0%, #f8fafc 30%, #e2e8f0 70%, #f1f5f9 100%);
   min-height: 100vh;
+  color: #0f172a;
+}
+
+/* Light mode text improvements - ensuring readability */
+.light .text-white {
+  color: #0f172a !important;
+}
+
+.light .text-gray-300 {
+  color: #475569 !important;
+}
+
+.light .text-gray-400 {
+  color: #64748b !important;
+}
+
+/* Light mode input/select styling */
+.light input,
+.light select,
+.light textarea {
+  color: #0f172a !important;
+  background: rgba(241, 245, 249, 0.9) !important;
+}
+
+.light input::placeholder,
+.light textarea::placeholder {
+  color: #94a3b8 !important;
+}
+
+/* Light mode option elements */
+.light option {
+  color: #0f172a;
+  background: #ffffff;
+}
+
+/* Dark mode input styling */
+.dark input,
+.dark select,
+.dark textarea {
+  color: #f1f5f9 !important;
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.3s ease-out;
+}
+
+.animate-scale-in {
+  animation: scaleIn 0.2s ease-out;
+}
+
+.animate-shimmer {
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+  background-size: 200% 100%;
+  animation: shimmer 2s infinite;
+}
+
+/* Interactive card hover effects */
+.hover-card {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.hover-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 40px -10px rgba(0, 0, 0, 0.3);
+}
+
+/* Button active states */
+button:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+/* Focus ring styling */
+*:focus-visible {
+  outline: 2px solid rgba(99, 102, 241, 0.5);
+  outline-offset: 2px;
+}
+
+/* Selection color */
+::selection {
+  background: rgba(99, 102, 241, 0.3);
 }
