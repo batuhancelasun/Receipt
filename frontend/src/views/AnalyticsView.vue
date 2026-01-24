@@ -172,7 +172,8 @@ const categoryList = computed(() => {
 })
 
 const formatCurrency = (amount) => {
-  return `€${amount.toFixed(2)}`
+  const value = amount ?? 0
+  return `€${value.toFixed(2)}`
 }
 
 const chartColors = [
