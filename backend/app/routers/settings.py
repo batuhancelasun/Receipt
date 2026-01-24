@@ -52,6 +52,7 @@ async def update_settings(
         # Update AI scanner with new key
         scanner = get_scanner()
         scanner.set_api_key(updates.gemini_api_key)
+        print(f"[Settings] API key updated for user {user_id}")
     
     if updates.default_currency is not None:
         update_doc["default_currency"] = updates.default_currency
@@ -62,13 +63,20 @@ async def update_settings(
     if updates.monthly_budget is not None:
         update_doc["monthly_budget"] = updates.monthly_budget
     
-    # Update settings
+    print(f"[Settings] Updating settings for user {user_id}: {update_doc}")
+    
+    # Update settings - use $setOnInsert to set user_id on new docs
     result = await settings_collection.find_one_and_update(
         {"user_id": user_id},
-        {"$set": update_doc},
+        {
+            "$set": update_doc,
+            "$setOnInsert": {"user_id": user_id}
+        },
         upsert=True,
         return_document=True
     )
+    
+    print(f"[Settings] Result: has_api_key={bool(result.get('gemini_api_key'))}")
     
     return SettingsResponse(
         default_currency=result.get("default_currency", "€"),
