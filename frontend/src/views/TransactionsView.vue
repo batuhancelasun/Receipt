@@ -118,8 +118,8 @@
             </div>
           </div>
           
-          <!-- Recurring Toggle -->
-          <div class="flex items-center space-x-3 p-4 bg-white/5 dark:bg-white/5 bg-gray-100/50 rounded-lg">
+          <!-- Recurring Settings -->
+          <div class="p-4 bg-white/5 dark:bg-white/5 bg-gray-100/50 rounded-lg space-y-4">
             <label class="flex items-center cursor-pointer">
               <input
                 v-model="form.is_recurring"
@@ -128,9 +128,51 @@
               />
               <span class="ml-3 text-white dark:text-white text-gray-900 font-medium">Recurring Transaction</span>
             </label>
-            <div class="flex-1">
-              <p class="text-sm text-gray-400">Mark this transaction as recurring (e.g., monthly subscription, rent)</p>
+            
+            <!-- Recurring Options (shown when recurring is enabled) -->
+            <div v-if="form.is_recurring" class="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2 animate-fade-in">
+              <!-- Frequency -->
+              <div>
+                <label class="block text-sm font-medium text-gray-300 dark:text-gray-300 text-gray-700 mb-2">Frequency</label>
+                <select
+                  v-model="form.recurring_frequency"
+                  class="w-full px-4 py-3 bg-white/5 dark:bg-white/5 bg-gray-100/50 border border-white/10 rounded-lg text-white dark:text-white text-gray-900 focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
+                >
+                  <option value="daily">Daily</option>
+                  <option value="weekly">Weekly</option>
+                  <option value="monthly">Monthly</option>
+                  <option value="yearly">Yearly</option>
+                </select>
+              </div>
+              
+              <!-- Interval -->
+              <div>
+                <label class="block text-sm font-medium text-gray-300 dark:text-gray-300 text-gray-700 mb-2">
+                  Every {{ form.recurring_interval }} {{ frequencyLabel }}
+                </label>
+                <input
+                  v-model.number="form.recurring_interval"
+                  type="number"
+                  min="1"
+                  max="365"
+                  class="w-full px-4 py-3 bg-white/5 dark:bg-white/5 bg-gray-100/50 border border-white/10 rounded-lg text-white dark:text-white text-gray-900 focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
+                />
+              </div>
+              
+              <!-- End Date (Optional) -->
+              <div>
+                <label class="block text-sm font-medium text-gray-300 dark:text-gray-300 text-gray-700 mb-2">End Date (optional)</label>
+                <input
+                  v-model="form.recurring_end_date"
+                  type="date"
+                  class="w-full px-4 py-3 bg-white/5 dark:bg-white/5 bg-gray-100/50 border border-white/10 rounded-lg text-white dark:text-white text-gray-900 focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
+                />
+              </div>
             </div>
+            
+            <p class="text-sm text-gray-400">
+              {{ form.is_recurring ? 'This transaction will repeat automatically' : 'Enable to set up automatic recurring' }}
+            </p>
           </div>
           
           <!-- Notes -->
@@ -212,7 +254,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import api from '../services/api'
 import NavigationBar from '../components/NavigationBar.vue'
 
@@ -229,7 +271,21 @@ const form = ref({
   category_id: '',
   currency: '€',
   notes: '',
-  is_recurring: false
+  is_recurring: false,
+  recurring_frequency: 'monthly',
+  recurring_interval: 1,
+  recurring_end_date: ''
+})
+
+// Computed property for interval label
+const frequencyLabel = computed(() => {
+  const labels = {
+    daily: form.value.recurring_interval === 1 ? 'day' : 'days',
+    weekly: form.value.recurring_interval === 1 ? 'week' : 'weeks',
+    monthly: form.value.recurring_interval === 1 ? 'month' : 'months',
+    yearly: form.value.recurring_interval === 1 ? 'year' : 'years'
+  }
+  return labels[form.value.recurring_frequency] || 'months'
 })
 
 async function fetchTransactions() {
@@ -271,6 +327,15 @@ async function handleSubmit() {
     
     payload.is_recurring = form.value.is_recurring
     
+    // Add recurring settings if enabled
+    if (form.value.is_recurring) {
+      payload.recurring_frequency = form.value.recurring_frequency
+      payload.recurring_interval = form.value.recurring_interval
+      if (form.value.recurring_end_date) {
+        payload.recurring_end_date = new Date(form.value.recurring_end_date).toISOString()
+      }
+    }
+    
     await api.post('/transactions/', payload)
     
     // Reset form
@@ -282,7 +347,10 @@ async function handleSubmit() {
       category_id: '',
       currency: '€',
       notes: '',
-      is_recurring: false
+      is_recurring: false,
+      recurring_frequency: 'monthly',
+      recurring_interval: 1,
+      recurring_end_date: ''
     }
     
     showAddForm.value = false

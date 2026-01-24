@@ -55,6 +55,9 @@ class TransactionCreate(BaseModel):
     items: Optional[List[TransactionItem]] = []
     tags: List[str] = []
     is_recurring: bool = False
+    recurring_frequency: Optional[str] = Field(None, pattern="^(daily|weekly|monthly|yearly)$")
+    recurring_interval: int = Field(1, ge=1, le=365)
+    recurring_end_date: Optional[datetime] = None
 
 
 class TransactionUpdate(BaseModel):
@@ -69,6 +72,9 @@ class TransactionUpdate(BaseModel):
     items: Optional[List[TransactionItem]] = None
     tags: Optional[List[str]] = None
     is_recurring: Optional[bool] = None
+    recurring_frequency: Optional[str] = Field(None, pattern="^(daily|weekly|monthly|yearly)$")
+    recurring_interval: Optional[int] = Field(None, ge=1, le=365)
+    recurring_end_date: Optional[datetime] = None
 
 
 class TransactionResponse(BaseModel):
@@ -86,6 +92,9 @@ class TransactionResponse(BaseModel):
     receipt_id: Optional[str] = None
     tags: List[str] = []
     is_recurring: bool
+    recurring_frequency: Optional[str] = None
+    recurring_interval: int = 1
+    recurring_end_date: Optional[datetime] = None
     created_at: datetime
     updated_at: datetime
 

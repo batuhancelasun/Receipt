@@ -57,6 +57,9 @@ async def create_transaction(
         "items": [item.dict() for item in transaction.items] if transaction.items else [],
         "tags": transaction.tags,
         "is_recurring": transaction.is_recurring,
+        "recurring_frequency": transaction.recurring_frequency,
+        "recurring_interval": transaction.recurring_interval,
+        "recurring_end_date": transaction.recurring_end_date,
         "created_at": datetime.utcnow(),
         "updated_at": datetime.utcnow()
     }
@@ -77,6 +80,9 @@ async def create_transaction(
         items=txn_doc.get("items", []),
         tags=txn_doc.get("tags", []),
         is_recurring=txn_doc["is_recurring"],
+        recurring_frequency=txn_doc.get("recurring_frequency"),
+        recurring_interval=txn_doc.get("recurring_interval", 1),
+        recurring_end_date=txn_doc.get("recurring_end_date"),
         created_at=txn_doc["created_at"],
         updated_at=txn_doc["updated_at"]
     )
@@ -133,6 +139,9 @@ async def list_transactions(
             receipt_id=txn.get("receipt_id"),
             tags=txn.get("tags", []),
             is_recurring=txn.get("is_recurring", False),
+            recurring_frequency=txn.get("recurring_frequency"),
+            recurring_interval=txn.get("recurring_interval", 1),
+            recurring_end_date=txn.get("recurring_end_date"),
             created_at=txn["created_at"],
             updated_at=txn["updated_at"]
         ))
@@ -173,6 +182,9 @@ async def get_transaction(
         receipt_id=txn.get("receipt_id"),
         tags=txn.get("tags", []),
         is_recurring=txn.get("is_recurring", False),
+        recurring_frequency=txn.get("recurring_frequency"),
+        recurring_interval=txn.get("recurring_interval", 1),
+        recurring_end_date=txn.get("recurring_end_date"),
         created_at=txn["created_at"],
         updated_at=txn["updated_at"]
     )
@@ -214,6 +226,12 @@ async def update_transaction(
         update_doc["tags"] = updates.tags
     if updates.is_recurring is not None:
         update_doc["is_recurring"] = updates.is_recurring
+    if updates.recurring_frequency is not None:
+        update_doc["recurring_frequency"] = updates.recurring_frequency
+    if updates.recurring_interval is not None:
+        update_doc["recurring_interval"] = updates.recurring_interval
+    if updates.recurring_end_date is not None:
+        update_doc["recurring_end_date"] = updates.recurring_end_date
     
     # Update transaction
     result = await transactions_collection.find_one_and_update(
@@ -242,6 +260,9 @@ async def update_transaction(
         receipt_id=result.get("receipt_id"),
         tags=result.get("tags", []),
         is_recurring=result.get("is_recurring", False),
+        recurring_frequency=result.get("recurring_frequency"),
+        recurring_interval=result.get("recurring_interval", 1),
+        recurring_end_date=result.get("recurring_end_date"),
         created_at=result["created_at"],
         updated_at=result["updated_at"]
     )

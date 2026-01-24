@@ -78,6 +78,9 @@ class TransactionModel(BaseModel):
     receipt_id: Optional[str] = None  # Link to receipt if scanned
     tags: List[str] = []
     is_recurring: bool = False
+    recurring_frequency: Optional[str] = None  # "daily", "weekly", "monthly", "yearly"
+    recurring_interval: int = 1  # Every X frequency (e.g., every 2 months)
+    recurring_end_date: Optional[datetime] = None  # When to stop recurring (None = indefinite)
     created_at: datetime = Field(default_factory=datetime.utcnow)
     updated_at: datetime = Field(default_factory=datetime.utcnow)
     
