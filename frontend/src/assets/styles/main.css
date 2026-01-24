@@ -117,12 +117,18 @@
 
 /* Dark mode option elements - ensure visibility */
 .dark select option {
-  color: #0f172a;
-  background: #1e293b;
+  color: #1e293b;
+  background: #f1f5f9;
 }
 
 .dark select {
   background-color: rgba(30, 41, 59, 0.9);
+}
+
+/* Ensure select has proper contrast */
+.dark select:focus option:checked {
+  background: #6366f1;
+  color: #ffffff;
 }
 
 /* Animations */
