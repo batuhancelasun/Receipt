@@ -56,7 +56,29 @@ async def health_check():
     """Health check endpoint for Docker"""
     return {"status": "healthy", "service": "receipt-tracker"}
 
-# Serve Vue.js static files (built frontend)
-# This will be mounted after the Docker build copies the dist folder
+
+# SPA fallback - serve index.html for all non-API routes
+# This must be AFTER all API routes but BEFORE static file mounting
+from fastapi.responses import FileResponse
+
+@app.get("/{full_path:path}")
+async def serve_spa(full_path: str):
+    """Serve Vue.js SPA for all non-API routes"""
+    # Don't serve static assets through this route
+    if full_path.startswith("api/"):
+        from fastapi import HTTPException
+        raise HTTPException(status_code=404, detail="Not Found")
+    
+    index_path = "/app/static/index.html"
+    if os.path.exists(index_path):
+        return FileResponse(index_path)
+    
+    # Fallback for development
+    return {"message": "Frontend not built yet"}
+
+
+# Serve Vue.js static files (built frontend) 
+# Assets like JS, CSS, images will be served from here
 if os.path.exists("/app/static"):
-    app.mount("/", StaticFiles(directory="/app/static", html=True), name="static")
+    app.mount("/assets", StaticFiles(directory="/app/static/assets"), name="assets")
+

@@ -107,17 +107,22 @@ async def scan_receipt(
         
     except Exception as e:
         # Update status to failed
+        error_msg = str(e)
         await receipts_collection.update_one(
             {"_id": ObjectId(receipt_id)},
             {"$set": {
                 "scan_status": "failed",
-                "error_message": str(e)
+                "error_message": error_msg
             }}
         )
         
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to scan receipt: {str(e)}"
+        # Return failed status instead of raising 500 error
+        return ReceiptScanResponse(
+            id=receipt_id,
+            filename=filename,
+            scan_status="failed",
+            error_message=f"Failed to scan receipt: {error_msg}",
+            scanned_at=receipt_doc["scanned_at"]
         )
 
 
