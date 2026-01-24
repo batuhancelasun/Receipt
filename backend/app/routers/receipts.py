@@ -69,15 +69,10 @@ async def scan_receipt(
         settings_collection = await get_collection("settings")
         user_settings = await settings_collection.find_one({"user_id": user_id})
         
-        print(f"[Scan] User settings found: {user_settings is not None}")
-        print(f"[Scan] Has API key in settings: {bool(user_settings and user_settings.get('gemini_api_key'))}")
-        
         if user_settings and user_settings.get("gemini_api_key"):
             scanner.set_api_key(user_settings["gemini_api_key"])
-            print(f"[Scan] API key loaded from settings")
         elif not scanner.api_key:
             # No API key in settings and no default key
-            print(f"[Scan] No API key found!")
             await receipts_collection.update_one(
                 {"_id": ObjectId(receipt_id)},
                 {"$set": {
@@ -93,7 +88,6 @@ async def scan_receipt(
                 scanned_at=receipt_doc["scanned_at"]
             )
         
-        print(f"[Scan] Starting scan of {file_path}")
         extracted_data = await scanner.scan_receipt(str(file_path))
         
         # Check for errors
