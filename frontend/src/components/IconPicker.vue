@@ -1,8 +1,8 @@
 <template>
-  <div class="relative">
+  <div class="relative" ref="triggerRef">
     <button
       type="button"
-      @click="isOpen = !isOpen"
+      @click="toggleDropdown"
       class="w-full px-4 py-3 bg-white/5 dark:bg-white/5 bg-gray-100/50 border border-white/10 rounded-lg text-white dark:text-white text-gray-900 focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all flex items-center justify-between"
     >
       <div class="flex items-center space-x-2">
@@ -15,32 +15,45 @@
       </svg>
     </button>
     
-    <!-- Dropdown -->
-    <div
-      v-if="isOpen"
-      class="absolute z-[9999] mt-2 w-full max-h-64 overflow-y-auto bg-gray-800 border border-white/10 rounded-xl shadow-2xl animate-scale-in"
-    >
-      <div class="p-2 grid grid-cols-5 gap-1">
-        <button
-          v-for="icon in icons"
-          :key="icon.id"
-          type="button"
-          @click="selectIcon(icon.id)"
-          :class="[
-            'p-3 rounded-lg flex flex-col items-center justify-center transition-all hover:bg-primary-500/20',
-            selectedIcon === icon.id ? 'bg-primary-500/30 ring-2 ring-primary-500' : 'bg-white/5'
-          ]"
-          :title="icon.label"
-        >
-          <div class="w-6 h-6 text-gray-300" v-html="icon.svg"></div>
-        </button>
+    <!-- Dropdown rendered using Teleport to body -->
+    <Teleport to="body">
+      <div
+        v-if="isOpen"
+        ref="dropdownRef"
+        class="fixed max-h-64 overflow-y-auto bg-gray-800 border border-white/10 rounded-xl shadow-2xl animate-scale-in"
+        :style="dropdownStyle"
+      >
+        <div class="p-2 grid grid-cols-5 gap-1">
+          <button
+            v-for="icon in icons"
+            :key="icon.id"
+            type="button"
+            @click="selectIcon(icon.id)"
+            :class="[
+              'p-3 rounded-lg flex flex-col items-center justify-center transition-all hover:bg-primary-500/20',
+              selectedIcon === icon.id ? 'bg-primary-500/30 ring-2 ring-primary-500' : 'bg-white/5'
+            ]"
+            :title="icon.label"
+          >
+            <div class="w-6 h-6 text-gray-300" v-html="icon.svg"></div>
+          </button>
+        </div>
       </div>
-    </div>
+    </Teleport>
+    
+    <!-- Backdrop to close dropdown -->
+    <Teleport to="body">
+      <div
+        v-if="isOpen"
+        class="fixed inset-0 z-[9998]"
+        @click="isOpen = false"
+      ></div>
+    </Teleport>
   </div>
 </template>
 
 <script setup>
-import { ref, watch, onMounted, onUnmounted } from 'vue'
+import { ref, watch, computed, nextTick } from 'vue'
 
 const props = defineProps({
   modelValue: {
@@ -53,6 +66,9 @@ const emit = defineEmits(['update:modelValue'])
 
 const isOpen = ref(false)
 const selectedIcon = ref(props.modelValue)
+const triggerRef = ref(null)
+const dropdownRef = ref(null)
+const dropdownPosition = ref({ top: 0, left: 0, width: 0 })
 
 // Collection of SVG icons for categories
 const icons = [
@@ -78,9 +94,36 @@ const icons = [
   { id: 'paw', label: 'Pets', svg: '<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 10l-2 1m0 0l-2-1m2 1v2.5M20 7l-2 1m2-1l-2-1m2 1v2.5M14 4l-2-1-2 1M4 7l2-1M4 7l2 1M4 7v2.5M12 21l-2-1m2 1l2-1m-2 1v-2.5M6 18l-2-1v-2.5M18 18l2-1v-2.5"/></svg>' }
 ]
 
+const dropdownStyle = computed(() => ({
+  top: `${dropdownPosition.value.top}px`,
+  left: `${dropdownPosition.value.left}px`,
+  width: `${dropdownPosition.value.width}px`,
+  zIndex: 9999
+}))
+
 watch(() => props.modelValue, (newVal) => {
   selectedIcon.value = newVal
 })
+
+async function toggleDropdown() {
+  if (!isOpen.value) {
+    // Calculate position before opening
+    await nextTick()
+    updatePosition()
+  }
+  isOpen.value = !isOpen.value
+}
+
+function updatePosition() {
+  if (triggerRef.value) {
+    const rect = triggerRef.value.getBoundingClientRect()
+    dropdownPosition.value = {
+      top: rect.bottom + 8,
+      left: rect.left,
+      width: Math.max(rect.width, 280)
+    }
+  }
+}
 
 function selectIcon(iconId) {
   selectedIcon.value = iconId
@@ -97,21 +140,6 @@ function getIconLabel(iconId) {
   const icon = icons.find(i => i.id === iconId)
   return icon ? icon.label : ''
 }
-
-// Close dropdown when clicking outside
-function handleClickOutside(event) {
-  if (!event.target.closest('.relative')) {
-    isOpen.value = false
-  }
-}
-
-onMounted(() => {
-  document.addEventListener('click', handleClickOutside)
-})
-
-onUnmounted(() => {
-  document.removeEventListener('click', handleClickOutside)
-})
 
 // Expose icons for external use
 defineExpose({ icons, getIconSvg, getIconLabel })
