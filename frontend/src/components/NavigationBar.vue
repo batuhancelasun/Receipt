@@ -90,11 +90,47 @@
             <span>Logout</span>
           </button>
         </div>
+        <!-- Mobile Menu Button -->
+        <button
+          @click="showMobileMenu = !showMobileMenu"
+          class="md:hidden p-2 rounded-lg text-gray-300 hover:bg-white/10"
+        >
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path v-if="!showMobileMenu" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+            <path v-else stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- Mobile Menu -->
+    <div v-if="showMobileMenu" class="md:hidden glass-dark dark:glass-dark glass-light border-b border-white/10 animate-slide-down">
+      <div class="px-2 pt-2 pb-3 space-y-1">
+        <router-link to="/" class="mobile-nav-link" @click="showMobileMenu = false">
+          Dashboard
+        </router-link>
+        <router-link to="/scan" class="mobile-nav-link" @click="showMobileMenu = false">
+          Scan Receipt
+        </router-link>
+        <router-link to="/transactions" class="mobile-nav-link" @click="showMobileMenu = false">
+          Transactions
+        </router-link>
+        <router-link to="/analytics" class="mobile-nav-link" @click="showMobileMenu = false">
+          Analytics
+        </router-link>
+        <div class="border-t border-white/10 my-2 pt-2">
+           <router-link to="/settings" class="mobile-nav-link" @click="showMobileMenu = false">
+            Settings
+          </router-link>
+          <button @click="handleLogout" class="mobile-nav-link text-red-400 w-full text-left">
+            Logout
+          </button>
+        </div>
       </div>
     </div>
     
     <!-- Notification Dropdown -->
-    <div v-if="showNotifications" class="absolute right-4 top-16 w-80 glass-dark dark:glass-dark glass-light rounded-xl shadow-2xl p-4 animate-scale-in">
+    <div v-if="showNotifications" class="absolute right-4 top-16 w-80 glass-dark dark:glass-dark glass-light rounded-xl shadow-2xl p-4 animate-scale-in z-50">
       <h3 class="text-lg font-semibold text-white dark:text-white text-gray-900 mb-3">Notifications</h3>
       <div v-if="notifications.length > 0" class="space-y-2 max-h-96 overflow-y-auto">
         <div v-for="notif in notifications" :key="notif.id" class="p-3 bg-white/5 rounded-lg">
@@ -118,6 +154,7 @@ const authStore = useAuthStore()
 const themeStore = useThemeStore()
 
 const showNotifications = ref(false)
+const showMobileMenu = ref(false)
 const notifications = ref([]) // Will be populated from API
 
 const notificationCount = computed(() => notifications.value.length)
@@ -135,5 +172,13 @@ function handleLogout() {
 
 .nav-link.router-link-active {
   @apply bg-primary-600 text-white shadow-lg shadow-primary-600/30;
+}
+
+.mobile-nav-link {
+  @apply block px-3 py-2 rounded-md text-base font-medium text-gray-300 dark:text-gray-300 text-gray-700 hover:bg-white/10 hover:text-white transition-colors;
+}
+
+.mobile-nav-link.router-link-active {
+  @apply bg-primary-600 text-white;
 }
 </style>
