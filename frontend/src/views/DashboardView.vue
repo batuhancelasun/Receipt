@@ -54,7 +54,7 @@
               </div>
               <div>
                 <p class="text-white dark:text-white text-gray-900 font-medium">{{ txn.merchant_name || txn.description || 'Transaction' }}</p>
-                <p class="text-sm text-gray-400">{{ new Date(txn.date).toLocaleDateString() }}</p>
+                <p class="text-sm text-gray-400">{{ new Date(txn.date).toLocaleDateString('en-GB') }}</p>
               </div>
             </div>
             <div class="text-right">
@@ -122,12 +122,8 @@ const formatCurrency = (amount) => {
 
 async function fetchDashboardData() {
   try {
-    // Get current month transactions for stats
-    const now = new Date()
-    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1)
     const response = await api.get('/transactions/', {
       params: {
-        start_date: startOfMonth.toISOString(),
         limit: 50
       }
     })

@@ -6,7 +6,9 @@
       <h1 class="text-3xl font-bold text-white dark:text-white text-gray-900 mb-8">Scan Receipt</h1>
       
       <div class="glass-dark dark:glass-dark glass-light rounded-xl p-8">
+        <!-- Upload Area (Hidden when result exists) -->
         <div
+          v-if="!result"
           @drop.prevent="handleDrop"
           @dragover.prevent
           class="border-2 border-dashed border-white/30 rounded-xl p-12 text-center cursor-pointer hover:border-primary-500 transition-colors"
@@ -43,13 +45,14 @@
         </div>
         
         <button
-          v-if="selectedFile && !scanning"
+          v-if="selectedFile && !scanning && !result"
           @click="scanReceipt"
           class="w-full mt-6 py-3 bg-gradient-to-r from-primary-600 to-primary-700 hover:from-primary-700 hover:to-primary-800 text-white font-semibold rounded-lg transition-all"
         >
           Scan Receipt with AI
         </button>
         
+        <!-- Scanning Loading State -->
         <div v-if="scanning" class="mt-6 text-center">
           <div class="flex items-center justify-center space-x-2">
             <svg class="w-5 h-5 text-primary-400 animate-spin" fill="none" viewBox="0 0 24 24">
@@ -60,29 +63,130 @@
           </div>
         </div>
         
-        <div v-if="result" class="mt-6 glass-dark dark:glass-dark glass-light rounded-xl p-6">
-          <h3 class="text-xl font-semibold text-white dark:text-white text-gray-900 mb-4">Extracted Data</h3>
-          <div class="space-y-3">
-            <div><span class="text-gray-400">Store:</span> <span class="text-white ml-2">{{ result.merchant_name }}</span></div>
-            <div><span class="text-gray-400">Date:</span> <span class="text-white ml-2">{{ result.date }}</span></div>
-            <div><span class="text-gray-400">Total:</span> <span class="text-green-400 ml-2 font-mono text-lg">{{ result.currency }}{{ result.total_amount }}</span></div>
-            <div v-if="result.confidence"><span class="text-gray-400">Confidence:</span> <span class="text-white ml-2">{{ (result.confidence * 100).toFixed(0) }}%</span></div>
+        <!-- Scanned Result Form -->
+        <div v-if="result" class="mt-6 animate-fade-in">
+          <div class="flex items-center justify-between mb-6">
+            <h3 class="text-xl font-semibold text-white dark:text-white text-gray-900">Review & Edit</h3>
+            <button 
+              @click="resetScan"
+              class="text-sm text-gray-400 hover:text-white transition-colors"
+            >
+              Cancel & Rescan
+            </button>
           </div>
           
-          <div v-if="result.items && result.items.length > 0" class="mt-4">
-            <p class="text-gray-400 mb-2">Items:</p>
-            <ul class="space-y-1">
-              <li v-for="(item, idx) in result.items" :key="idx" class="text-sm text-gray-300">
-                {{ item.name }} - {{ result.currency }}{{ item.total_price }}
-              </li>
-            </ul>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+            <!-- Merchant -->
+            <div>
+              <label class="block text-sm font-medium text-gray-300 mb-1">Merchant</label>
+              <input 
+                v-model="editForm.merchant_name"
+                type="text"
+                class="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white focus:ring-2 focus:ring-primary-500"
+              />
+            </div>
+            
+            <!-- Category Selection -->
+            <div>
+              <label class="block text-sm font-medium text-gray-300 mb-1">Category</label>
+              <select 
+                v-model="editForm.category_id"
+                class="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white focus:ring-2 focus:ring-primary-500"
+              >
+                <option value="">Select a Category</option>
+                <option v-for="cat in categories" :key="cat.id" :value="cat.id">
+                  {{ cat.name }}
+                </option>
+              </select>
+            </div>
+            
+            <!-- Date -->
+            <div>
+              <label class="block text-sm font-medium text-gray-300 mb-1">Date</label>
+              <input 
+                v-model="editForm.date"
+                type="date"
+                class="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white focus:ring-2 focus:ring-primary-500"
+              />
+            </div>
+            
+            <!-- Total Amount -->
+            <div>
+              <label class="block text-sm font-medium text-gray-300 mb-1">Total Amount</label>
+              <div class="relative">
+                <span class="absolute left-3 top-3 text-gray-400">{{ editForm.currency }}</span>
+                <input 
+                  v-model.number="editForm.total_amount"
+                  type="number"
+                  step="0.01"
+                  class="w-full pl-8 pr-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white focus:ring-2 focus:ring-primary-500"
+                />
+              </div>
+            </div>
+          </div>
+          
+          <!-- Items List -->
+          <div class="mb-6">
+            <div class="flex items-center justify-between mb-2">
+              <label class="block text-sm font-medium text-gray-300">Items</label>
+              <button 
+                @click="addItem"
+                class="text-xs px-2 py-1 bg-primary-600/20 text-primary-300 rounded hover:bg-primary-600/30"
+              >
+                + Add Item
+              </button>
+            </div>
+            
+            <div class="space-y-2 max-h-60 overflow-y-auto pr-1">
+              <div v-if="editForm.items.length === 0" class="text-gray-500 text-sm italic p-2 text-center border border-white/5 rounded-lg">
+                No items detected
+              </div>
+              
+              <div 
+                v-for="(item, idx) in editForm.items" 
+                :key="idx" 
+                class="flex items-center space-x-2 bg-white/5 p-2 rounded-lg"
+              >
+                <input 
+                  v-model="item.name"
+                  type="text"
+                  placeholder="Item Name"
+                  class="flex-1 px-2 py-1 bg-transparent border-b border-white/10 text-white text-sm focus:border-primary-500 focus:outline-none"
+                />
+                <input 
+                  v-model.number="item.quantity"
+                  type="number"
+                  step="0.1"
+                  placeholder="Qty"
+                  class="w-16 px-2 py-1 bg-transparent border-b border-white/10 text-white text-sm focus:border-primary-500 focus:outline-none"
+                />
+                <input 
+                  v-model.number="item.total_price"
+                  type="number"
+                  step="0.01"
+                  placeholder="Price"
+                  class="w-20 px-2 py-1 bg-transparent border-b border-white/10 text-white text-sm focus:border-primary-500 focus:outline-none text-right"
+                />
+                <button 
+                  @click="editForm.items.splice(idx, 1)"
+                  class="text-red-400 hover:text-red-300 p-1"
+                >
+                  &times;
+                </button>
+              </div>
+            </div>
+            
+            <div class="flex justify-end text-sm text-gray-400 mt-2">
+              Calculated Total: {{ editForm.currency }}{{ calculateItemsTotal() }}
+            </div>
           </div>
           
           <button
             @click="createTransaction"
-            class="w-full mt-6 py-3 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg transition-all"
+            :disabled="creating"
+            class="w-full py-3 bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white font-semibold rounded-lg transition-all disabled:opacity-50"
           >
-            Create Transaction
+            {{ creating ? 'Creating...' : 'Create Transaction' }}
           </button>
         </div>
         
@@ -95,7 +199,7 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import api from '../services/api'
 import NavigationBar from '../components/NavigationBar.vue'
@@ -103,8 +207,34 @@ import NavigationBar from '../components/NavigationBar.vue'
 const router = useRouter()
 const selectedFile = ref(null)
 const scanning = ref(false)
+const creating = ref(false)
 const result = ref(null)
 const error = ref('')
+const categories = ref([])
+
+// Edit form state
+const editForm = ref({
+  merchant_name: '',
+  date: '',
+  total_amount: 0,
+  currency: '€',
+  category_id: '',
+  items: []
+})
+
+onMounted(() => {
+  fetchCategories()
+})
+
+async function fetchCategories() {
+  try {
+    const response = await api.get('/settings/categories')
+    // Filter for expense categories only as receipts are expenses
+    categories.value = response.data.filter(c => c.type === 'expense')
+  } catch (err) {
+    console.error('Failed to fetch categories', err)
+  }
+}
 
 function handleFileSelect(event) {
   selectedFile.value = event.target.files[0]
@@ -116,6 +246,33 @@ function handleDrop(event) {
   selectedFile.value = event.dataTransfer.files[0]
   result.value = null
   error.value = ''
+}
+
+function resetScan() {
+  selectedFile.value = null
+  result.value = null
+  error.value = ''
+  editForm.value = {
+    merchant_name: '',
+    date: '',
+    total_amount: 0,
+    currency: '€',
+    category_id: '',
+    items: []
+  }
+}
+
+function addItem() {
+  editForm.value.items.push({
+    name: 'New Item',
+    quantity: 1,
+    unit_price: 0,
+    total_price: 0
+  })
+}
+
+function calculateItemsTotal() {
+  return editForm.value.items.reduce((sum, item) => sum + (parseFloat(item.total_price) || 0), 0).toFixed(2)
 }
 
 async function scanReceipt() {
@@ -132,27 +289,49 @@ async function scanReceipt() {
       headers: { 'Content-Type': 'multipart/form-data' }
     })
     
+    // Check if scan status is failed but returned 200 (graceful error handling)
+    if (response.data.scan_status === 'failed') {
+      throw new Error(response.data.error_message || 'Scan failed')
+    }
+    
     result.value = response.data.extracted_data
+    
+    // Initialize edit form with scanned data
+    const scanned = response.data.extracted_data
+    editForm.value = {
+      merchant_name: scanned.merchant_name || '',
+      date: scanned.date || new Date().toISOString().split('T')[0],
+      total_amount: parseFloat(scanned.total_amount) || 0,
+      currency: scanned.currency || '€',
+      category_id: '', // User must select
+      items: (scanned.items || []).map(item => ({
+        name: item.name,
+        quantity: parseFloat(item.quantity) || 1,
+        unit_price: parseFloat(item.unit_price) || 0,
+        total_price: parseFloat(item.total_price) || 0
+      }))
+    }
+    
   } catch (err) {
-    error.value = err.response?.data?.detail || 'Failed to scan receipt. Make sure Gemini API key is configured in settings.'
+    error.value = err.message || err.response?.data?.detail || 'Failed to scan receipt. Make sure Gemini API key is configured in settings.'
   } finally {
     scanning.value = false
   }
 }
 
 async function createTransaction() {
+  creating.value = true
   try {
-    // Parse date from AI result (could be YYYY-MM-DD string)
-    let transactionDate = result.value.date
-    if (transactionDate && typeof transactionDate === 'string') {
-      // Convert to ISO datetime string
+    // Ensure date is in ISO format
+    let transactionDate = editForm.value.date
+    if (transactionDate) {
       transactionDate = new Date(transactionDate).toISOString()
     } else {
       transactionDate = new Date().toISOString()
     }
     
-    // Map items to match backend schema
-    const items = (result.value.items || []).map(item => ({
+    // Clean up items
+    const items = editForm.value.items.map(item => ({
       name: item.name || 'Unknown item',
       quantity: parseFloat(item.quantity) || 1.0,
       unit_price: parseFloat(item.unit_price) || 0,
@@ -161,18 +340,21 @@ async function createTransaction() {
     
     await api.post('/transactions/', {
       type: 'expense',
-      amount: parseFloat(result.value.total_amount) || 0,
-      currency: result.value.currency || '€',
-      merchant_name: result.value.merchant_name || 'Unknown',
+      amount: parseFloat(editForm.value.total_amount) || 0,
+      currency: editForm.value.currency || '€',
+      merchant_name: editForm.value.merchant_name || 'Unknown',
       date: transactionDate,
+      category_id: editForm.value.category_id || null,
       items: items,
-      description: `Receipt from ${result.value.merchant_name || 'unknown store'}`
+      description: `Receipt from ${editForm.value.merchant_name || 'unknown store'}`
     })
     
     router.push('/transactions')
   } catch (err) {
     console.error('Transaction creation error:', err.response?.data || err)
     error.value = 'Failed to create transaction: ' + (err.response?.data?.detail || 'Unknown error')
+  } finally {
+    creating.value = false
   }
 }
 </script>
