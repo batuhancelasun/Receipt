@@ -140,6 +140,13 @@ class CategoryCreate(BaseModel):
     type: str = Field(..., pattern="^(expense|income)$")
 
 
+class CategoryUpdate(BaseModel):
+    """Update category schema"""
+    name: Optional[str] = Field(None, min_length=1, max_length=50)
+    icon: Optional[str] = None
+    color: Optional[str] = Field(None, pattern="^#[0-9A-Fa-f]{6}$")
+
+
 class CategoryResponse(BaseModel):
     """Category response schema"""
     id: str

@@ -4,7 +4,7 @@ Settings router for app configuration
 from fastapi import APIRouter, Depends, HTTPException, status
 from bson import ObjectId
 
-from ..schemas import SettingsUpdate, SettingsResponse, CategoryCreate, CategoryResponse
+from ..schemas import SettingsUpdate, SettingsResponse, CategoryCreate, CategoryUpdate, CategoryResponse
 from ..services.auth import get_current_user_id
 from ..services.database import get_collection
 from ..services.ai_scanner import get_scanner
@@ -123,6 +123,50 @@ async def create_category(
         icon=category.icon,
         color=category.color,
         type=category.type
+    )
+
+
+@router.put("/categories/{category_id}", response_model=CategoryResponse)
+async def update_category(
+    category_id: str,
+    updates: CategoryUpdate,
+    user_id: str = Depends(get_current_user_id)
+):
+    """Update a category"""
+    categories_collection = await get_collection("categories")
+    
+    update_doc = {}
+    if updates.name is not None:
+        update_doc["name"] = updates.name
+    if updates.icon is not None:
+        update_doc["icon"] = updates.icon
+    if updates.color is not None:
+        update_doc["color"] = updates.color
+    
+    if not update_doc:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="No updates provided"
+        )
+    
+    result = await categories_collection.find_one_and_update(
+        {"_id": ObjectId(category_id), "user_id": user_id},
+        {"$set": update_doc},
+        return_document=True
+    )
+    
+    if not result:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Category not found"
+        )
+    
+    return CategoryResponse(
+        id=str(result["_id"]),
+        name=result["name"],
+        icon=result["icon"],
+        color=result["color"],
+        type=result["type"]
     )
 
 
