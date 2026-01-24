@@ -298,11 +298,18 @@ async function scanReceipt() {
     
     // Initialize edit form with scanned data
     const scanned = response.data.extracted_data
+    
+    // Normalize currency
+    let currencySymbol = scanned.currency || '€'
+    if (currencySymbol === 'EUR') currencySymbol = '€'
+    if (currencySymbol === 'USD') currencySymbol = '$'
+    if (currencySymbol === 'GBP') currencySymbol = '£'
+    
     editForm.value = {
       merchant_name: scanned.merchant_name || '',
       date: scanned.date || new Date().toISOString().split('T')[0],
       total_amount: parseFloat(scanned.total_amount) || 0,
-      currency: scanned.currency || '€',
+      currency: currencySymbol,
       category_id: '', // User must select
       items: (scanned.items || []).map(item => ({
         name: item.name,
