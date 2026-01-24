@@ -3,6 +3,7 @@ version: '3.8'
 services:
   # Unified Application (Vue + FastAPI)
   app:
+    build: .
     image: batubaba619/receipt:latest
     container_name: receipt-app
     restart: unless-stopped

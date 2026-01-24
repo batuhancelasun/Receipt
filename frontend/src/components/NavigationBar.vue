@@ -6,9 +6,7 @@
           <!-- Clickable Logo -->
           <router-link to="/" class="text-2xl font-bold text-white dark:text-white text-gray-900 hover:text-primary-400 transition-colors">
             <div class="flex items-center space-x-2">
-              <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 14l6-6m-5.5.5h.01m4.99 5h.01M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16l3.5-2 3.5 2 3.5-2 3.5 2zM10 8.5a.5.5 0 11-1 0 .5.5 0 011 0zm5 5a.5.5 0 11-1 0 .5.5 0 011 0z" />
-              </svg>
+              <img src="/logo.png" alt="Receipt Logo" class="w-8 h-8 object-contain" />
               <span>Receipt</span>
             </div>
           </router-link>
