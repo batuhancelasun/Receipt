@@ -154,7 +154,7 @@
       <!-- Categories Tab -->
       <div v-if="activeTab === 'categories'" class="space-y-6 animate-fade-in">
         <!-- Create Category Form -->
-        <div class="glass-dark dark:glass-dark glass-light rounded-xl p-6">
+        <div class="glass-dark dark:glass-dark glass-light rounded-xl p-6 overflow-visible">
           <div class="flex items-center space-x-3 mb-6">
             <div class="p-2 bg-orange-500/20 rounded-lg">
               <svg class="w-6 h-6 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">

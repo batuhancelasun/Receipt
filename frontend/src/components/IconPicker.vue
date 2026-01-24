@@ -18,7 +18,7 @@
     <!-- Dropdown -->
     <div
       v-if="isOpen"
-      class="absolute z-50 mt-2 w-full max-h-64 overflow-y-auto bg-gray-800 dark:bg-gray-800 bg-white border border-white/10 rounded-xl shadow-2xl animate-scale-in"
+      class="absolute z-[9999] mt-2 w-full max-h-64 overflow-y-auto bg-gray-800 border border-white/10 rounded-xl shadow-2xl animate-scale-in"
     >
       <div class="p-2 grid grid-cols-5 gap-1">
         <button
