@@ -87,7 +87,8 @@
               ></div>
             </div>
             <div class="flex items-center justify-between mt-1 text-sm text-gray-400">
-              <span>{{ category.count }} transactions</span>
+              <span v-if="category.count > 0">{{ category.count }} transactions</span>
+              <span v-else></span>
               <span>{{ category.percentage.toFixed(1) }}%</span>
             </div>
           </div>
@@ -115,12 +116,15 @@ const periods = [
 ]
 
 const selectedPeriod = ref('monthly')
-const stats = ref({
-  total_income: 0,
-  total_expenses: 0,
-  net: 0,
-  income_by_category: {},
-  expense_by_category: {}
+const analyticsData = ref({
+  stats: {
+    total_income: 0,
+    total_expenses: 0,
+    net: 0,
+    transaction_count: 0
+  },
+  expense_breakdown: [],
+  income_breakdown: []
 })
 
 const incomeChartRef = ref(null)
@@ -129,44 +133,34 @@ let incomeChart = null
 let expenseChart = null
 
 const hasIncomeData = computed(() => {
-  return Object.keys(stats.value.income_by_category || {}).length > 0
+  return analyticsData.value.income_breakdown && analyticsData.value.income_breakdown.length > 0
 })
 
 const hasExpenseData = computed(() => {
-  return Object.keys(stats.value.expense_by_category || {}).length > 0
+  return analyticsData.value.expense_breakdown && analyticsData.value.expense_breakdown.length > 0
 })
 
+const stats = computed(() => analyticsData.value.stats)
+
 const categoryList = computed(() => {
-  const list = []
-  const allCategories = {
-    ...stats.value.income_by_category,
-    ...stats.value.expense_by_category
-  }
-  
-  const totalIncome = stats.value.total_income
-  const totalExpense = stats.value.total_expenses
-  
-  // Income categories
-  Object.entries(stats.value.income_by_category || {}).forEach(([name, data]) => {
-    list.push({
-      name,
+  const list = [
+    ...analyticsData.value.income_breakdown.map(item => ({ 
+      name: item.category_name,
+      total: item.amount,
+      percentage: item.percentage,
+      count: 0, // Backend doesn't provide count per category yet
       type: 'income',
-      total: data.total,
-      count: data.count,
-      percentage: totalIncome > 0 ? (data.total / totalIncome) * 100 : 0
-    })
-  })
-  
-  // Expense categories
-  Object.entries(stats.value.expense_by_category || {}).forEach(([name, data]) => {
-    list.push({
-      name,
+      color: item.color
+    })),
+    ...analyticsData.value.expense_breakdown.map(item => ({ 
+      name: item.category_name,
+      total: item.amount,
+      percentage: item.percentage,
+      count: 0, // Backend doesn't provide count per category yet
       type: 'expense',
-      total: data.total,
-      count: data.count,
-      percentage: totalExpense > 0 ? (data.total / totalExpense) * 100 : 0
-    })
-  })
+      color: item.color
+    }))
+  ]
   
   return list.sort((a, b) => b.total - a.total)
 })
@@ -185,8 +179,9 @@ function createPieChart(canvas, data, title) {
   if (!canvas) return null
   
   const ctx = canvas.getContext('2d')
-  const labels = Object.keys(data)
-  const values = Object.values(data).map(d => d.total)
+  const labels = data.map(d => d.category_name)
+  const values = data.map(d => d.amount)
+  const bgColors = data.map((d, i) => d.color || chartColors[i % chartColors.length])
   
   return new Chart(ctx, {
     type: 'pie',
@@ -194,7 +189,7 @@ function createPieChart(canvas, data, title) {
       labels,
       datasets: [{
         data: values,
-        backgroundColor: chartColors,
+        backgroundColor: bgColors,
         borderColor: 'rgba(255, 255, 255, 0.1)',
         borderWidth: 2
       }]
@@ -243,10 +238,10 @@ function renderCharts() {
   
   nextTick(() => {
     if (hasIncomeData.value && incomeChartRef.value) {
-      incomeChart = createPieChart(incomeChartRef.value, stats.value.income_by_category, 'Income')
+      incomeChart = createPieChart(incomeChartRef.value, analyticsData.value.income_breakdown, 'Income')
     }
     if (hasExpenseData.value && expenseChartRef.value) {
-      expenseChart = createPieChart(expenseChartRef.value, stats.value.expense_by_category, 'Expenses')
+      expenseChart = createPieChart(expenseChartRef.value, analyticsData.value.expense_breakdown, 'Expenses')
     }
   })
 }
@@ -254,7 +249,7 @@ function renderCharts() {
 async function fetchAnalytics() {
   try {
     const response = await api.get(`/transactions/analytics/${selectedPeriod.value}`)
-    stats.value = response.data
+    analyticsData.value = response.data
     renderCharts()
   } catch (error) {
     console.error('Failed to fetch analytics:', error)

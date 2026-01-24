@@ -119,7 +119,7 @@
                   v-model.number="editForm.total_amount"
                   type="number"
                   step="0.01"
-                  class="w-full pl-8 pr-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white focus:ring-2 focus:ring-primary-500"
+                  class="w-full pl-12 pr-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white focus:ring-2 focus:ring-primary-500"
                 />
               </div>
             </div>
