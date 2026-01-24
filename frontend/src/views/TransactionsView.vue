@@ -7,7 +7,7 @@
         <h1 class="text-3xl font-bold text-white dark:text-white text-gray-900">Transactions</h1>
         <button
           @click="showAddForm = !showAddForm"
-          class="px-6 py-3 bg-primary-600 hover:bg-primary-700 text-white rounded-xl font-medium transition-all shadow-lg shadow-primary-600/30 flex items-center space-x-2"
+          class="px-4 py-2 sm:px-6 sm:py-3 bg-primary-600 hover:bg-primary-700 text-white rounded-xl font-medium transition-all shadow-lg shadow-primary-600/30 flex items-center space-x-2 text-sm sm:text-base"
         >
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />

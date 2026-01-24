@@ -7,7 +7,7 @@
           <router-link to="/" class="text-2xl font-bold text-white dark:text-white text-gray-900 hover:text-primary-400 transition-colors">
             <div class="flex items-center space-x-2">
               <img src="/logo.png" alt="Receipt Logo" class="w-8 h-8 object-contain dark:invert" />
-              <span>Receipt</span>
+              <span class="hidden sm:block">Receipt</span>
             </div>
           </router-link>
           
