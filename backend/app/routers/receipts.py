@@ -64,6 +64,30 @@ async def scan_receipt(
     # Scan with AI
     try:
         scanner = get_scanner()
+        
+        # Load user's API key from settings
+        settings_collection = await get_collection("settings")
+        user_settings = await settings_collection.find_one({"user_id": user_id})
+        
+        if user_settings and user_settings.get("gemini_api_key"):
+            scanner.set_api_key(user_settings["gemini_api_key"])
+        elif not scanner.api_key:
+            # No API key in settings and no default key
+            await receipts_collection.update_one(
+                {"_id": ObjectId(receipt_id)},
+                {"$set": {
+                    "scan_status": "failed",
+                    "error_message": "Gemini API key not configured. Please set it in settings."
+                }}
+            )
+            return ReceiptScanResponse(
+                id=receipt_id,
+                filename=filename,
+                scan_status="failed",
+                error_message="Gemini API key not configured. Please set it in settings.",
+                scanned_at=receipt_doc["scanned_at"]
+            )
+        
         extracted_data = await scanner.scan_receipt(str(file_path))
         
         # Check for errors
