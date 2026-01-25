@@ -13,8 +13,8 @@ export default defineConfig({
                 name: 'Receipt',
                 short_name: 'Receipt',
                 description: 'AI-powered receipt scanning and expense tracking',
-                theme_color: '#ffffff',
-                background_color: '#ffffff',
+                theme_color: '#1f2937',
+                background_color: '#111827',
                 display: 'standalone',
                 icons: [
                     {
