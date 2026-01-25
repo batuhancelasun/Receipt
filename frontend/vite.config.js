@@ -10,11 +10,11 @@ export default defineConfig({
             registerType: 'autoUpdate',
             includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'masked-icon.svg'],
             manifest: {
-                name: 'Receipt Tracker',
-                short_name: 'Receipts',
+                name: 'Receipt',
+                short_name: 'Receipt',
                 description: 'AI-powered receipt scanning and expense tracking',
-                theme_color: '#1f2937',
-                background_color: '#111827',
+                theme_color: '#ffffff',
+                background_color: '#ffffff',
                 display: 'standalone',
                 icons: [
                     {
