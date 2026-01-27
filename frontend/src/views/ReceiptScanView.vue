@@ -9,11 +9,9 @@
         <!-- Upload Area (Hidden when result exists) -->
         <div
           v-if="!result"
-          @drop.prevent="handleDrop"
-          @dragover.prevent
-          class="border-2 border-dashed border-white/30 rounded-xl p-12 text-center cursor-pointer hover:border-primary-500 transition-colors"
-          @click="$refs.fileInput.click()"
+          class="space-y-4"
         >
+          <!-- Hidden inputs -->
           <input
             ref="fileInput"
             type="file"
@@ -21,26 +19,71 @@
             @change="handleFileSelect"
             class="hidden"
           />
-          
-          <div v-if="!selectedFile">
-            <div class="w-20 h-20 mx-auto mb-4 bg-primary-500/20 rounded-2xl flex items-center justify-center">
-              <svg class="w-10 h-10 text-primary-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
-              </svg>
+          <input
+            ref="cameraInput"
+            type="file"
+            accept="image/*"
+            capture="environment"
+            @change="handleFileSelect"
+            class="hidden"
+          />
+
+          <!-- Mobile Quick Action (Take Photo) -->
+          <div 
+            @click="$refs.cameraInput.click()"
+            class="group relative overflow-hidden glass-dark dark:glass-dark glass-light border border-primary-500/30 rounded-2xl p-6 text-center cursor-pointer hover:border-primary-500 transition-all active:scale-95 sm:hidden"
+          >
+            <div class="absolute inset-0 bg-primary-500/10 group-hover:bg-primary-500/20 transition-colors"></div>
+            <div class="relative z-10">
+              <div class="w-16 h-16 mx-auto mb-3 bg-primary-500/20 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
+                <svg class="w-8 h-8 text-primary-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+              </div>
+              <p class="text-xl font-semibold text-white">Take Photo</p>
+              <p class="text-sm text-gray-400 italic">Open camera instantly</p>
             </div>
-            <p class="text-xl text-gray-300 mb-2">Drop receipt image here</p>
-            <p class="text-sm text-gray-400">or click to browse</p>
           </div>
-          
-          <div v-else>
-            <p class="text-lg text-primary-400 mb-4">{{ selectedFile.name }}</p>
-            <button
-              @click.stop="selectedFile = null"
-              class="px-4 py-2 bg-red-500/20 hover:bg-red-500/30 text-red-200 rounded-lg"
-            >
-              Remove
-            </button>
+
+          <!-- Upload/Drop Area -->
+          <div
+            @drop.prevent="handleDrop"
+            @dragover.prevent
+            class="border-2 border-dashed border-white/20 rounded-2xl p-8 text-center cursor-pointer hover:border-primary-500/50 transition-colors group"
+            @click="$refs.fileInput.click()"
+          >
+            <div v-if="!selectedFile">
+              <div class="w-16 h-16 mx-auto mb-4 bg-white/5 rounded-xl flex items-center justify-center group-hover:bg-primary-500/10 transition-colors">
+                <svg class="w-8 h-8 text-gray-400 group-hover:text-primary-400 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                </svg>
+              </div>
+              <p class="text-lg text-gray-300 font-medium">Browse Gallery</p>
+              <p class="text-xs text-gray-500 mt-1 hidden sm:block">or drop image here</p>
+            </div>
+            
+            <div v-else class="py-4">
+              <div class="flex items-center justify-center space-x-3">
+                <div class="w-10 h-10 bg-primary-500/20 rounded-lg flex items-center justify-center">
+                  <svg class="w-6 h-6 text-primary-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                  </svg>
+                </div>
+                <div class="text-left">
+                  <p class="text-sm font-medium text-white truncate max-w-[200px]">{{ selectedFile.name }}</p>
+                  <p class="text-xs text-gray-500">{{ (selectedFile.size / 1024 / 1024).toFixed(2) }} MB</p>
+                </div>
+                <button
+                  @click.stop="selectedFile = null"
+                  class="p-2 hover:bg-red-500/20 text-red-400 rounded-lg transition-colors"
+                >
+                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                  </svg>
+                </button>
+              </div>
+            </div>
           </div>
         </div>
         
@@ -211,6 +254,8 @@ const creating = ref(false)
 const result = ref(null)
 const error = ref('')
 const categories = ref([])
+const cameraInput = ref(null)
+const fileInput = ref(null)
 
 // Edit form state
 const editForm = ref({
