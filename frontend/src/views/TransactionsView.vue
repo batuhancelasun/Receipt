@@ -241,9 +241,11 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import api from '../services/api'
+import { useTransactionStore } from '../stores/transactions'
 import NavigationBar from '../components/NavigationBar.vue'
 
-const transactions = ref([])
+const transactionStore = useTransactionStore()
+const transactions = computed(() => transactionStore.recentTransactions)
 const categories = ref([])
 const showAddForm = ref(false)
 const submitting = ref(false)
@@ -279,12 +281,7 @@ function toggleDetails(id) {
 }
 
 async function fetchTransactions() {
-  try {
-    const response = await api.get('/transactions/', { params: { limit: 100 } })
-    transactions.value = response.data
-  } catch (error) {
-    console.error('Failed to fetch transactions:', error)
-  }
+  await transactionStore.fetchDashboardData()
 }
 
 async function fetchCategories() {
@@ -300,9 +297,7 @@ async function deleteTransaction(id) {
   if (!confirm('Are you sure you want to delete this transaction?')) return
 
   try {
-    await api.delete(`/transactions/${id}`)
-    // Remove from list
-    transactions.value = transactions.value.filter(t => t.id !== id)
+    await transactionStore.deleteTransaction(id)
     // Remove from expanded state
     delete expandedDetails.value[id]
   } catch (error) {

@@ -103,55 +103,20 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
-import api from '../services/api'
+import { computed, onMounted } from 'vue'
+import { useTransactionStore } from '../stores/transactions'
 import NavigationBar from '../components/NavigationBar.vue'
 import StatCard from '../components/StatCard.vue'
 
-const stats = ref({
-  total_income: 0,
-  total_expenses: 0,
-  net: 0
-})
-
-const recentTransactions = ref([])
+const transactionStore = useTransactionStore()
+const stats = computed(() => transactionStore.stats)
+const recentTransactions = computed(() => transactionStore.recentTransactions)
 
 const formatCurrency = (amount) => {
   return `€${amount.toFixed(2)}`
 }
 
-async function fetchDashboardData() {
-  try {
-    const response = await api.get('/transactions/', {
-      params: {
-        limit: 50
-      }
-    })
-    
-    recentTransactions.value = response.data
-    
-    // Calculate stats
-    let income = 0
-    let expenses = 0
-    response.data.forEach(txn => {
-      if (txn.type === 'income') {
-        income += txn.amount
-      } else {
-        expenses += txn.amount
-      }
-    })
-    
-    stats.value = {
-      total_income: income,
-      total_expenses: expenses,
-      net: income - expenses
-    }
-  } catch (error) {
-    console.error('Failed to fetch dashboard data:', error)
-  }
-}
-
 onMounted(() => {
-  fetchDashboardData()
+  transactionStore.fetchDashboardData()
 })
 </script>

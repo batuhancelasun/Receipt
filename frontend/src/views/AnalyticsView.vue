@@ -141,11 +141,13 @@
 import { ref, computed, onMounted, watch, nextTick } from 'vue'
 import { Chart, registerables } from 'chart.js'
 import api from '../services/api'
+import { useTransactionStore } from '../stores/transactions'
 import NavigationBar from '../components/NavigationBar.vue'
 import StatCard from '../components/StatCard.vue'
 
 Chart.register(...registerables)
 
+const transactionStore = useTransactionStore()
 const periods = [
   { label: 'Monthly', value: 'monthly' },
   { label: 'Yearly', value: 'yearly' }
@@ -170,15 +172,13 @@ const years = computed(() => {
   return years
 })
 
-const analyticsData = ref({
-  stats: {
-    total_income: 0,
-    total_expenses: 0,
-    net: 0,
-    transaction_count: 0
-  },
-  expense_breakdown: [],
-  income_breakdown: []
+const analyticsData = computed(() => {
+  const cacheKey = `${selectedPeriod.value}-${selectedYear.value || ''}-${selectedMonth.value || ''}`
+  return transactionStore.analytics[cacheKey] || {
+    stats: { total_income: 0, total_expenses: 0, net: 0, transaction_count: 0 },
+    expense_breakdown: [],
+    income_breakdown: []
+  }
 })
 
 // ... (charts refs and logic same as before) ...
@@ -311,22 +311,21 @@ function renderCharts() {
 }
 
 async function fetchAnalytics() {
-  try {
-    const params = {}
-    if (selectedPeriod.value === 'monthly' || selectedPeriod.value === 'yearly') {
-      params.year = selectedYear.value
-    }
-    if (selectedPeriod.value === 'monthly') {
-      params.month = selectedMonth.value
-    }
-    
-    const response = await api.get(`/transactions/analytics/${selectedPeriod.value}`, { params })
-    analyticsData.value = response.data
-    renderCharts()
-  } catch (error) {
-    console.error('Failed to fetch analytics:', error)
+  const params = {}
+  if (selectedPeriod.value === 'monthly' || selectedPeriod.value === 'yearly') {
+    params.year = selectedYear.value
   }
+  if (selectedPeriod.value === 'monthly') {
+    params.month = selectedMonth.value
+  }
+  
+  await transactionStore.fetchAnalytics(selectedPeriod.value, params)
 }
+
+// Watch for data changes to re-render charts
+watch(analyticsData, () => {
+  renderCharts()
+}, { deep: true })
 
 watch(selectedPeriod, () => {
   fetchAnalytics()
