@@ -10,12 +10,12 @@
 
   .glass-dark {
     @apply bg-gray-900/70 backdrop-blur-xl border border-white/10 shadow-2xl;
-    background: linear-gradient(135deg, rgba(15, 23, 42, 0.9) 0%, rgba(30, 41, 59, 0.8) 100%);
+    background-color: rgba(15, 23, 42, 0.9);
   }
 
   .glass-light {
     @apply bg-white/90 backdrop-blur-xl border border-gray-200/60 shadow-xl;
-    background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(248, 250, 252, 0.9) 100%);
+    background-color: rgba(255, 255, 255, 0.95);
   }
 }
 
@@ -50,7 +50,7 @@
 
 /* Dark mode - Premium deep gradient */
 .dark {
-  background: linear-gradient(160deg, #0a0f1a 0%, #111827 30%, #1e293b 60%, #0f172a 100%);
+  background-color: #0a0f1a;
   min-height: 100vh;
   color: #f1f5f9;
 }
@@ -71,7 +71,7 @@
 
 /* Light mode - Clean, professional gradient */
 .light {
-  background: linear-gradient(160deg, #ffffff 0%, #f8fafc 30%, #e2e8f0 70%, #f1f5f9 100%);
+  background-color: #f8fafc;
   min-height: 100vh;
   color: #0f172a;
 }
@@ -166,12 +166,28 @@
   }
 }
 
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 .animate-fade-in {
-  animation: fadeIn 0.3s ease-out;
+  animation: fadeIn 0.15s ease-out;
 }
 
 .animate-scale-in {
-  animation: scaleIn 0.2s ease-out;
+  animation: scaleIn 0.1s ease-out;
+}
+
+.animate-slide-down {
+  animation: slideDown 0.15s ease-out;
 }
 
 .animate-shimmer {

@@ -138,7 +138,7 @@
         <button
           @click="saveSettings"
           :disabled="saving"
-          class="w-full py-3 bg-gradient-to-r from-primary-600 to-primary-700 hover:from-primary-700 hover:to-primary-800 text-white font-semibold rounded-lg transition-all disabled:opacity-50 shadow-lg"
+          class="w-full py-3 bg-primary-600 hover:bg-primary-700 text-white font-semibold rounded-lg transition-all disabled:opacity-50 shadow-lg"
         >
           {{ saving ? 'Saving...' : 'Save Settings' }}
         </button>
@@ -228,7 +228,7 @@
               <button
                 type="submit"
                 :disabled="categoryLoading"
-                class="px-6 py-3 bg-gradient-to-r from-primary-600 to-primary-700 hover:from-primary-700 hover:to-primary-800 text-white font-semibold rounded-lg transition-all disabled:opacity-50 shadow-lg"
+                class="px-6 py-3 bg-primary-600 hover:bg-primary-700 text-white font-semibold rounded-lg transition-all disabled:opacity-50 shadow-lg"
               >
                 {{ categoryLoading ? 'Saving...' : (editingCategory ? 'Update Category' : 'Create Category') }}
               </button>
@@ -407,7 +407,7 @@
             <button
               type="submit"
               :disabled="userLoading"
-              class="px-6 py-3 bg-gradient-to-r from-primary-600 to-primary-700 hover:from-primary-700 hover:to-primary-800 text-white font-semibold rounded-lg transition-all disabled:opacity-50 shadow-lg"
+              class="px-6 py-3 bg-primary-600 hover:bg-primary-700 text-white font-semibold rounded-lg transition-all disabled:opacity-50"
             >
               {{ userLoading ? 'Creating...' : 'Create User' }}
             </button>

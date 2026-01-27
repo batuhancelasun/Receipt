@@ -47,7 +47,7 @@
         <button
           v-if="selectedFile && !scanning && !result"
           @click="scanReceipt"
-          class="w-full mt-6 py-3 bg-gradient-to-r from-primary-600 to-primary-700 hover:from-primary-700 hover:to-primary-800 text-white font-semibold rounded-lg transition-all"
+          class="w-full mt-6 py-3 bg-primary-600 hover:bg-primary-700 text-white font-semibold rounded-lg transition-all"
         >
           Scan Receipt with AI
         </button>
@@ -184,7 +184,7 @@
           <button
             @click="createTransaction"
             :disabled="creating"
-            class="w-full py-3 bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white font-semibold rounded-lg transition-all disabled:opacity-50"
+            class="w-full py-3 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg transition-all disabled:opacity-50"
           >
             {{ creating ? 'Creating...' : 'Create Transaction' }}
           </button>
