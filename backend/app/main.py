@@ -35,7 +35,7 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(
     title="Receipt Tracker",
-    description="AI-powered receipt tracking with Gemini 2.0 Flash",
+    description="AI-powered receipt tracking with Gemini 2.5 Flash Lite",
     version="1.0.0",
     lifespan=lifespan
 )

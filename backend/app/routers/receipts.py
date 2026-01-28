@@ -28,7 +28,7 @@ async def scan_receipt(
     """
     Upload and scan a receipt image
     
-    Uses Gemini 2.0 Flash to extract transaction data
+    Uses Gemini 2.5 Flash Lite to extract transaction data
     """
     # Validate file type
     if not file.content_type.startswith("image/"):

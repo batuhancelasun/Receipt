@@ -1,5 +1,5 @@
 """
-Gemini 2.0 Flash AI service for receipt scanning
+Gemini 2.5 Flash Lite AI service for receipt scanning
 """
 import google.generativeai as genai
 from PIL import Image
@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 
 class GeminiReceiptScanner:
     """
-    AI-powered receipt scanner using Gemini 2.0 Flash
+    AI-powered receipt scanner using Gemini 2.5 Flash Lite
     
     Extracts structured data from receipt images:
     - Merchant name

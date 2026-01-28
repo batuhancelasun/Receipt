@@ -68,7 +68,7 @@
           <input
             v-model="apiKey"
             type="password"
-            placeholder="Enter your Gemini 2.0 Flash API key"
+            placeholder="Enter your Gemini 2.5 Flash Lite API key"
             class="w-full px-4 py-3 rounded-lg bg-white/5 border border-white/10 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-primary-500 transition-all"
           />
           <p class="text-sm text-gray-400 mt-2">Required for AI receipt scanning</p>

@@ -1,10 +1,10 @@
 # Receipt - AI-Powered Expense Tracker
 
-A self-hosted income/expense tracking application with AI-powered receipt scanning using Gemini 2.0 Flash.
+A self-hosted income/expense tracking application with AI-powered receipt scanning using Gemini 2.5 Flash Lite.
 
 ## Features
 
-✨ **AI Receipt Scanning** - Automatically extract transaction data from receipt images using Gemini 2.0 Flash  
+✨ **AI Receipt Scanning** - Automatically extract transaction data from receipt images using Gemini 2.5 Flash Lite  
 📊 **Analytics Dashboard** - Beautiful pie charts and statistics (daily/monthly/yearly)  
 🌓 **Dark/Light Theme** - Premium glassmorphism UI with theme switching  
 💱 **Multi-Currency** - Configurable currency symbols (€, $, £, ₺, ¥)  
@@ -17,7 +17,7 @@ A self-hosted income/expense tracking application with AI-powered receipt scanni
 - **Frontend**: Vue 3 + Vite + Tailwind CSS
 - **Backend**: FastAPI (Python)
 - **Database**: MongoDB
-- **AI**: Google Gemini 2.0 Flash
+- **AI**: Google Gemini 2.5 Flash Lite
 - **Charts**: Chart.js
 - **Deployment**: Docker + GitHub Actions
 
@@ -67,7 +67,7 @@ docker-compose up -d
 ### Gemini API Key
 
 1. Navigate to Settings in the app
-2. Enter your Gemini 2.0 Flash API key
+2. Enter your Gemini 2.5 Flash Lite API key
 3. Start scanning receipts!
 
 ### Currency
