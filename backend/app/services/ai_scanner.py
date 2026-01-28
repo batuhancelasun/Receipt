@@ -28,7 +28,7 @@ class GeminiReceiptScanner:
         self.api_key = api_key or os.getenv("GEMINI_API_KEY")
         if self.api_key:
             genai.configure(api_key=self.api_key)
-            self.model = genai.GenerativeModel('gemini-2.0-flash-exp')
+            self.model = genai.GenerativeModel('gemini-2.5-flash-lite')
         else:
             self.model = None
     
@@ -36,7 +36,7 @@ class GeminiReceiptScanner:
         """Update API key dynamically"""
         self.api_key = api_key
         genai.configure(api_key=api_key)
-        self.model = genai.GenerativeModel('gemini-2.0-flash-exp')
+        self.model = genai.GenerativeModel('gemini-2.5-flash-lite')
     
     async def scan_receipt(self, image_path: str) -> Dict[str, Any]:
         """
