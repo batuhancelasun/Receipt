@@ -172,9 +172,10 @@
                 </div>
                 <div class="min-w-0">
                   <p class="text-white dark:text-white text-gray-900 font-medium truncate">{{ txn.merchant_name || txn.description || 'Transaction' }}</p>
-                  <div class="flex items-center space-x-2 text-sm text-gray-400 truncate">
-                    <span>{{ formatDate(txn.date) }}</span>
-                    <span v-if="txn.category_name">• {{ txn.category_name }}</span>
+                  <div class="flex items-center gap-1 text-sm text-gray-400 overflow-hidden">
+                    <span class="shrink-0">{{ formatDate(txn.date) }}</span>
+                    <span v-if="txn.category_name" class="shrink-0">•</span>
+                    <span v-if="txn.category_name" class="truncate">{{ txn.category_name }}</span>
                   </div>
                 </div>
               </div>
