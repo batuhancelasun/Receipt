@@ -212,6 +212,11 @@
             
             <!-- Transaction Details (Expanded) -->
             <div v-if="expandedDetails[txn.id]" class="px-4 pb-4 animate-fade-in border-t border-white/5 pt-3">
+              <div v-if="txn.category_name" class="mb-3">
+                <p class="text-xs text-gray-500 uppercase tracking-wide">Category</p>
+                <p class="text-sm text-gray-300">{{ txn.category_name }}</p>
+              </div>
+              
               <div v-if="txn.items && txn.items.length > 0">
                 <p class="text-sm font-medium text-gray-400 mb-2">Items</p>
                 <div class="space-y-1 pl-2 border-l-2 border-primary-500/30">
