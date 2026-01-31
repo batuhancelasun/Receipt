@@ -161,7 +161,7 @@
           >
             <!-- Transaction Header -->
             <div class="p-4 flex items-center justify-between cursor-pointer" @click="toggleDetails(txn.id)">
-              <div class="flex items-center space-x-3">
+              <div class="flex items-center space-x-3 min-w-0 flex-1">
                 <div :class="[txn.type === 'income' ? 'bg-green-500/20' : 'bg-red-500/20', 'p-2 rounded-lg']">
                   <svg v-if="txn.type === 'income'" class="w-5 h-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
@@ -170,18 +170,18 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4" />
                   </svg>
                 </div>
-                <div>
-                  <p class="text-white dark:text-white text-gray-900 font-medium">{{ txn.merchant_name || txn.description || 'Transaction' }}</p>
-                  <div class="flex items-center space-x-2 text-sm text-gray-400">
+                <div class="min-w-0">
+                  <p class="text-white dark:text-white text-gray-900 font-medium truncate">{{ txn.merchant_name || txn.description || 'Transaction' }}</p>
+                  <div class="flex items-center space-x-2 text-sm text-gray-400 truncate">
                     <span>{{ formatDate(txn.date) }}</span>
                     <span v-if="txn.category_name">• {{ txn.category_name }}</span>
                   </div>
                 </div>
               </div>
               
-              <div class="flex items-center space-x-4">
+              <div class="flex items-center space-x-3 shrink-0">
                 <div class="text-right">
-                  <p :class="[txn.type === 'income' ? 'text-green-400' : 'text-red-400', 'font-mono text-lg font-semibold']">
+                  <p :class="[txn.type === 'income' ? 'text-green-400' : 'text-red-400', 'font-mono text-lg font-semibold whitespace-nowrap']">
                     {{ txn.type === 'income' ? '+' : '-' }}{{ txn.currency }}{{ txn.amount.toFixed(2) }}
                   </p>
                 </div>
@@ -189,7 +189,7 @@
                 <!-- Action Buttons -->
                 <button 
                   @click.stop="deleteTransaction(txn.id)"
-                  class="p-2 bg-red-500/10 text-red-400 rounded-lg opacity-0 group-hover:opacity-100 hover:bg-red-500/20 transition-all"
+                  class="hidden sm:inline-flex p-2 bg-red-500/10 text-red-400 rounded-lg opacity-0 group-hover:opacity-100 hover:bg-red-500/20 transition-all"
                   title="Delete"
                 >
                   <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
