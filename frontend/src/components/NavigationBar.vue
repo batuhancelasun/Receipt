@@ -45,7 +45,7 @@
         <div class="flex items-center space-x-3">
           <!-- Notifications -->
           <button
-            @click="toggleNotifications"
+            @click.stop="toggleNotifications"
             class="relative p-2 rounded-lg hover:bg-white/10 transition-colors"
             title="Notifications"
           >
@@ -128,7 +128,7 @@
     </div>
     
     <!-- Notification Dropdown -->
-    <div v-if="showNotifications" class="absolute right-4 top-16 w-80 glass-dark dark:glass-dark glass-light rounded-xl shadow-2xl p-4 animate-scale-in z-50">
+    <div v-if="showNotifications" @click.stop class="absolute right-4 top-16 w-80 glass-dark dark:glass-dark glass-light rounded-xl shadow-2xl p-4 animate-scale-in z-50">
       <h3 class="text-lg font-semibold text-white dark:text-white text-gray-900 mb-3">Notifications</h3>
       <div v-if="notifications.length > 0" class="space-y-2 max-h-96 overflow-y-auto">
         <div v-for="notif in notifications" :key="notif.id" class="p-3 bg-white/5 rounded-lg">
@@ -142,7 +142,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
 import { useThemeStore } from '../stores/theme'
@@ -179,8 +179,22 @@ function toggleNotifications() {
   }
 }
 
+function handleClickOutside(event) {
+  if (showNotifications.value) {
+    showNotifications.value = false
+  }
+  if (showMobileMenu.value) {
+    showMobileMenu.value = false
+  }
+}
+
 onMounted(() => {
   fetchNotifications()
+  document.addEventListener('click', handleClickOutside)
+})
+
+onBeforeUnmount(() => {
+  document.removeEventListener('click', handleClickOutside)
 })
 </script>
 

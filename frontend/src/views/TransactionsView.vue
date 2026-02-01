@@ -343,8 +343,11 @@ function parseDateInput(value) {
   const day = Number(match[1])
   const month = Number(match[2])
   const year = Number(match[3])
-  const date = new Date(year, month - 1, day)
-  if (date.getFullYear() !== year || date.getMonth() !== month - 1 || date.getDate() !== day) {
+  const date = new Date(Date.UTC(year, month - 1, day, 12, 0, 0))
+  const utcDay = date.getUTCDate()
+  const utcMonth = date.getUTCMonth()
+  const utcYear = date.getUTCFullYear()
+  if (utcYear !== year || utcMonth !== month - 1 || utcDay !== day) {
     return null
   }
   return date
