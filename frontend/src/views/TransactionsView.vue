@@ -82,12 +82,15 @@
             
             <!-- Date -->
             <div>
-              <label class="block text-sm font-medium text-gray-300 dark:text-gray-300 text-gray-700 mb-2">Date</label>
+              <label class="block text-sm font-medium text-gray-300 dark:text-gray-300 text-gray-700 mb-2">Date (DD/MM/YYYY)</label>
               <input
                 v-model="form.date"
-                type="date"
+                type="text"
+                inputmode="numeric"
+                pattern="\d{2}/\d{2}/\d{4}"
                 required
                 class="w-full px-4 py-3 bg-white/5 dark:bg-white/5 bg-gray-100/50 border border-white/10 rounded-lg text-white dark:text-white text-gray-900 focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
+                placeholder="DD/MM/YYYY"
               />
             </div>
           </div>
@@ -127,6 +130,61 @@
               class="w-full px-4 py-3 bg-white/5 dark:bg-white/5 bg-gray-100/50 border border-white/10 rounded-lg text-white dark:text-white text-gray-900 focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all resize-none"
               placeholder="Additional notes..."
             ></textarea>
+          </div>
+
+          <!-- Recurring Transaction -->
+          <div class="border border-white/10 rounded-xl p-4 bg-white/5 dark:bg-white/5 bg-gray-100/50">
+            <div class="flex items-center justify-between">
+              <div>
+                <p class="text-sm font-medium text-white dark:text-white text-gray-900">Recurring Transaction</p>
+                <p class="text-xs text-gray-400">Set frequency and duration</p>
+              </div>
+              <label class="inline-flex items-center cursor-pointer">
+                <input v-model="form.is_recurring" type="checkbox" class="sr-only" />
+                <div :class="[form.is_recurring ? 'bg-primary-600' : 'bg-white/10', 'w-11 h-6 rounded-full transition-colors relative']">
+                  <span :class="[form.is_recurring ? 'translate-x-5' : 'translate-x-1', 'absolute top-1 w-4 h-4 bg-white rounded-full transition-transform']"></span>
+                </div>
+              </label>
+            </div>
+
+            <div v-if="form.is_recurring" class="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div>
+                <label class="block text-sm font-medium text-gray-300 dark:text-gray-300 text-gray-700 mb-2">Frequency</label>
+                <select
+                  v-model="form.recurring_frequency"
+                  class="w-full px-4 py-3 bg-white/5 dark:bg-white/5 bg-gray-100/50 border border-white/10 rounded-lg text-white dark:text-white text-gray-900 focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
+                >
+                  <option value="daily">Daily</option>
+                  <option value="weekly">Weekly</option>
+                  <option value="monthly">Monthly</option>
+                  <option value="yearly">Yearly</option>
+                </select>
+              </div>
+
+              <div>
+                <label class="block text-sm font-medium text-gray-300 dark:text-gray-300 text-gray-700 mb-2">Every</label>
+                <input
+                  v-model.number="form.recurring_interval"
+                  type="number"
+                  min="1"
+                  max="365"
+                  class="w-full px-4 py-3 bg-white/5 dark:bg-white/5 bg-gray-100/50 border border-white/10 rounded-lg text-white dark:text-white text-gray-900 focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
+                  placeholder="1"
+                />
+              </div>
+
+              <div>
+                <label class="block text-sm font-medium text-gray-300 dark:text-gray-300 text-gray-700 mb-2">End Date (optional)</label>
+                <input
+                  v-model="form.recurring_end_date"
+                  type="text"
+                  inputmode="numeric"
+                  pattern="\d{2}/\d{2}/\d{4}"
+                  class="w-full px-4 py-3 bg-white/5 dark:bg-white/5 bg-gray-100/50 border border-white/10 rounded-lg text-white dark:text-white text-gray-900 focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
+                  placeholder="DD/MM/YYYY"
+                />
+              </div>
+            </div>
           </div>
           
           <!-- Submit Button -->
@@ -261,7 +319,7 @@ const form = ref({
   type: 'expense',
   amount: 0,
   description: '',
-  date: new Date().toISOString().split('T')[0],
+  date: formatDateInput(new Date()),
   category_id: '',
   currency: '€',
   notes: '',
@@ -270,6 +328,27 @@ const form = ref({
   recurring_interval: 1,
   recurring_end_date: ''
 })
+
+function formatDateInput(date) {
+  const day = String(date.getDate()).padStart(2, '0')
+  const month = String(date.getMonth() + 1).padStart(2, '0')
+  const year = date.getFullYear()
+  return `${day}/${month}/${year}`
+}
+
+function parseDateInput(value) {
+  if (!value) return null
+  const match = value.match(/^(\d{2})\/(\d{2})\/(\d{4})$/)
+  if (!match) return null
+  const day = Number(match[1])
+  const month = Number(match[2])
+  const year = Number(match[3])
+  const date = new Date(year, month - 1, day)
+  if (date.getFullYear() !== year || date.getMonth() !== month - 1 || date.getDate() !== day) {
+    return null
+  }
+  return date
+}
 
 // Format date to DD/MM/YYYY
 function formatDate(dateString) {
@@ -315,11 +394,17 @@ async function deleteTransaction(id) {
 async function handleSubmit() {
   submitting.value = true
   try {
+    const parsedDate = parseDateInput(form.value.date)
+    if (!parsedDate) {
+      alert('Please enter a valid date in DD/MM/YYYY format.')
+      return
+    }
+
     const payload = {
       type: form.value.type,
       amount: form.value.amount,
       description: form.value.description,
-      date: new Date(form.value.date).toISOString(),
+      date: parsedDate.toISOString(),
       currency: form.value.currency || '€'
     }
     
@@ -331,7 +416,19 @@ async function handleSubmit() {
       payload.notes = form.value.notes
     }
     
-    payload.is_recurring = false // Simplified for now to focus on core request
+    payload.is_recurring = form.value.is_recurring
+    if (form.value.is_recurring) {
+      payload.recurring_frequency = form.value.recurring_frequency
+      payload.recurring_interval = form.value.recurring_interval
+      if (form.value.recurring_end_date) {
+        const parsedEndDate = parseDateInput(form.value.recurring_end_date)
+        if (!parsedEndDate) {
+          alert('Please enter a valid recurring end date in DD/MM/YYYY format or leave it empty.')
+          return
+        }
+        payload.recurring_end_date = parsedEndDate.toISOString()
+      }
+    }
     
     await api.post('/transactions/', payload)
     
@@ -340,7 +437,7 @@ async function handleSubmit() {
       type: 'expense',
       amount: 0,
       description: '',
-      date: new Date().toISOString().split('T')[0],
+      date: formatDateInput(new Date()),
       category_id: '',
       currency: '€',
       notes: '',

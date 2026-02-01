@@ -45,7 +45,7 @@
         <div class="flex items-center space-x-3">
           <!-- Notifications -->
           <button
-            @click="showNotifications = !showNotifications"
+            @click="toggleNotifications"
             class="relative p-2 rounded-lg hover:bg-white/10 transition-colors"
             title="Notifications"
           >
@@ -142,10 +142,11 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
 import { useThemeStore } from '../stores/theme'
+import api from '../services/api'
 
 const router = useRouter()
 const authStore = useAuthStore()
@@ -161,6 +162,26 @@ function handleLogout() {
   authStore.logout()
   router.push('/login')
 }
+
+async function fetchNotifications() {
+  try {
+    const response = await api.get('/notifications', { params: { days: 3 } })
+    notifications.value = response.data
+  } catch (error) {
+    console.error('Failed to fetch notifications:', error)
+  }
+}
+
+function toggleNotifications() {
+  showNotifications.value = !showNotifications.value
+  if (showNotifications.value) {
+    fetchNotifications()
+  }
+}
+
+onMounted(() => {
+  fetchNotifications()
+})
 </script>
 
 <style scoped>

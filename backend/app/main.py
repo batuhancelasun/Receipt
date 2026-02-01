@@ -11,7 +11,7 @@ from contextlib import asynccontextmanager
 import os
 from pathlib import Path
 
-from .routers import receipts, transactions, settings, auth
+from .routers import receipts, transactions, settings, auth, notifications
 from .services.database import connect_to_mongo, close_mongo_connection
 
 # Static files directory
@@ -54,6 +54,7 @@ app.include_router(auth.router, prefix="/api/auth", tags=["Authentication"])
 app.include_router(receipts.router, prefix="/api/receipts", tags=["Receipts"])
 app.include_router(transactions.router, prefix="/api/transactions", tags=["Transactions"])
 app.include_router(settings.router, prefix="/api/settings", tags=["Settings"])
+app.include_router(notifications.router, prefix="/api/notifications", tags=["Notifications"])
 
 
 # Health check endpoint
