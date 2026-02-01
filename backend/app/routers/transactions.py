@@ -117,9 +117,9 @@ async def list_transactions(
             date_query["$lte"] = end_date
         query["date"] = date_query
     
-    # Execute query
+    # Execute query - sort by date desc, then by created_at desc for same-day transactions
     cursor = transactions_collection.find(query) \
-        .sort("date", -1) \
+        .sort([("date", -1), ("created_at", -1)]) \
         .skip(skip) \
         .limit(limit)
     
