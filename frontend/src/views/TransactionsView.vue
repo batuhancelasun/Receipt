@@ -451,7 +451,7 @@ async function handleSubmit() {
     }
     
     showAddForm.value = false
-    await fetchTransactions()
+    await transactionStore.fetchDashboardData(true)
   } catch (error) {
     console.error('Failed to create transaction:', error)
     alert('Failed to create transaction. Please try again.')

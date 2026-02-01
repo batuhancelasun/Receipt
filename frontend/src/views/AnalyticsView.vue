@@ -99,7 +99,7 @@
           
           <!-- Sort Filter -->
           <button 
-            @click="toggleSort"
+            @click.stop="toggleSort"
             class="flex items-center space-x-2 px-3 py-1.5 bg-white/5 dark:bg-white/5 bg-gray-100/50 rounded-lg text-sm text-gray-300 hover:bg-white/10 transition-colors"
           >
             <span>Amount: {{ sortOrder === 'desc' ? 'High to Low' : 'Low to High' }}</span>
