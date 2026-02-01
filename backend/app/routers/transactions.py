@@ -310,12 +310,29 @@ async def get_analytics(
     # Get date range
     start_date, end_date = get_period_dates(period, year, month)
     
-    # Get all transactions in period
+    def parse_txn_date(value):
+        if isinstance(value, datetime):
+            return value
+        if isinstance(value, str):
+            try:
+                normalized = value.replace("Z", "+00:00")
+                return datetime.fromisoformat(normalized)
+            except ValueError:
+                return None
+        return None
+
+    # Get all transactions for user and filter in-app to support legacy string dates
     cursor = transactions_collection.find({
-        "user_id": user_id,
-        "date": {"$gte": start_date, "$lte": end_date}
+        "user_id": user_id
     })
-    transactions = await cursor.to_list(length=None)
+    transactions = []
+    async for txn in cursor:
+        txn_date = parse_txn_date(txn.get("date"))
+        if not txn_date:
+            continue
+        if start_date <= txn_date <= end_date:
+            txn["date"] = txn_date
+            transactions.append(txn)
     
     # Get categories for mapping
     categories_cursor = categories_collection.find({"user_id": user_id})
