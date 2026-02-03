@@ -90,7 +90,7 @@
         </div>
         <!-- Mobile Menu Button -->
         <button
-          @click="showMobileMenu = !showMobileMenu"
+          @click.stop="showMobileMenu = !showMobileMenu"
           class="md:hidden p-2 rounded-lg text-gray-300 hover:bg-white/10"
         >
           <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
