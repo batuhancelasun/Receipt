@@ -133,6 +133,37 @@
             </button>
           </div>
         </div>
+
+        <!-- Backup & Restore -->
+        <div class="glass-dark dark:glass-dark glass-light rounded-xl p-6">
+          <div class="flex items-center space-x-3 mb-4">
+            <div class="p-2 bg-indigo-500/20 rounded-lg">
+              <svg class="w-6 h-6 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8 8 0 104.582 9m0 0H9" />
+              </svg>
+            </div>
+            <h3 class="text-xl font-semibold text-white dark:text-white text-gray-900">Backup & Restore</h3>
+          </div>
+          <p class="text-sm text-gray-400 mb-4">Export your settings, categories, and transactions to a JSON file, or import them after reinstall.</p>
+          <div class="flex flex-col sm:flex-row gap-3">
+            <button
+              type="button"
+              @click="exportData"
+              class="px-4 py-2 rounded-lg bg-primary-600 text-white hover:bg-primary-700 transition"
+            >
+              Export Data
+            </button>
+            <input ref="importInput" type="file" accept="application/json" class="hidden" @change="handleImportFile" />
+            <button
+              type="button"
+              @click="triggerImport"
+              class="px-4 py-2 rounded-lg bg-white/10 text-gray-200 hover:bg-white/20 transition"
+            >
+              Import Data
+            </button>
+          </div>
+          <p v-if="backupMessage" :class="['text-sm mt-3', backupType === 'error' ? 'text-red-400' : 'text-green-400']">{{ backupMessage }}</p>
+        </div>
         
         <!-- Save Button -->
         <button
@@ -508,6 +539,9 @@ const users = ref([])
 const userLoading = ref(false)
 const userError = ref('')
 const userSuccess = ref('')
+const backupMessage = ref('')
+const backupType = ref('success')
+const importInput = ref(null)
 
 const currentUserId = computed(() => authStore.user?.id)
 
@@ -579,6 +613,56 @@ async function saveSettings() {
     messageType.value = 'error'
   } finally {
     saving.value = false
+  }
+}
+
+function triggerImport() {
+  if (importInput.value) {
+    importInput.value.click()
+  }
+}
+
+async function exportData() {
+  backupMessage.value = ''
+  try {
+    const response = await api.get('/settings/export')
+    const blob = new Blob([JSON.stringify(response.data, null, 2)], { type: 'application/json' })
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    const timestamp = new Date().toISOString().replace(/[:.]/g, '-')
+    link.href = url
+    link.download = `receipt-backup-${timestamp}.json`
+    document.body.appendChild(link)
+    link.click()
+    link.remove()
+    URL.revokeObjectURL(url)
+    backupMessage.value = 'Export completed successfully.'
+    backupType.value = 'success'
+  } catch (error) {
+    backupMessage.value = 'Failed to export data.'
+    backupType.value = 'error'
+  }
+}
+
+async function handleImportFile(event) {
+  const file = event.target.files?.[0]
+  if (!file) return
+  backupMessage.value = ''
+  try {
+    const text = await file.text()
+    const payload = JSON.parse(text)
+    await api.post('/settings/import', payload, { params: { mode: 'replace' } })
+    backupMessage.value = 'Import completed successfully.'
+    backupType.value = 'success'
+    await loadSettings()
+    await fetchCategories()
+  } catch (error) {
+    backupMessage.value = 'Failed to import data. Please check the file.'
+    backupType.value = 'error'
+  } finally {
+    if (importInput.value) {
+      importInput.value.value = ''
+    }
   }
 }
 
