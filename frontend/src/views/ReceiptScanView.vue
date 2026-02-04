@@ -145,10 +145,13 @@
             
             <!-- Date -->
             <div>
-              <label class="block text-sm font-medium text-gray-300 mb-1">Date</label>
+              <label class="block text-sm font-medium text-gray-300 mb-1">Date (DD/MM/YYYY)</label>
               <input 
                 v-model="editForm.date"
-                type="date"
+                type="text"
+                inputmode="numeric"
+                pattern="\d{2}/\d{2}/\d{4}"
+                placeholder="DD/MM/YYYY"
                 class="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white focus:ring-2 focus:ring-primary-500"
               />
             </div>
@@ -245,7 +248,10 @@
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import api from '../services/api'
+import { useTransactionStore } from '../stores/transactions'
 import NavigationBar from '../components/NavigationBar.vue'
+
+const transactionStore = useTransactionStore()
 
 const router = useRouter()
 const selectedFile = ref(null)
@@ -299,12 +305,37 @@ function resetScan() {
   error.value = ''
   editForm.value = {
     merchant_name: '',
-    date: '',
+    date: formatDateInput(new Date()),
     total_amount: 0,
     currency: '€',
     category_id: '',
     items: []
   }
+}
+
+function formatDateInput(date) {
+  if (!(date instanceof Date) || isNaN(date.getTime())) return ''
+  const day = String(date.getUTCDate()).padStart(2, '0')
+  const month = String(date.getUTCMonth() + 1).padStart(2, '0')
+  const year = date.getUTCFullYear()
+  return `${day}/${month}/${year}`
+}
+
+function parseDateInput(value) {
+  if (!value) return null
+  const match = value.match(/^(\d{2})\/(\d{2})\/(\d{4})$/)
+  if (!match) return null
+  const day = Number(match[1])
+  const month = Number(match[2])
+  const year = Number(match[3])
+  const date = new Date(Date.UTC(year, month - 1, day, 12, 0, 0))
+  const utcDay = date.getUTCDate()
+  const utcMonth = date.getUTCMonth()
+  const utcYear = date.getUTCFullYear()
+  if (utcYear !== year || utcMonth !== month - 1 || utcDay !== day) {
+    return null
+  }
+  return date
 }
 
 function addItem() {
@@ -350,9 +381,20 @@ async function scanReceipt() {
     if (currencySymbol === 'USD') currencySymbol = '$'
     if (currencySymbol === 'GBP') currencySymbol = '£'
     
+    // Format date for the input
+    let formattedDate = formatDateInput(new Date())
+    if (scanned.date) {
+      try {
+        const d = new Date(scanned.date)
+        if (!isNaN(d.getTime())) {
+          formattedDate = formatDateInput(d)
+        }
+      } catch (e) {}
+    }
+
     editForm.value = {
       merchant_name: scanned.merchant_name || '',
-      date: scanned.date || new Date().toISOString().split('T')[0],
+      date: formattedDate,
       total_amount: parseFloat(scanned.total_amount) || 0,
       currency: currencySymbol,
       category_id: '', // User must select
@@ -374,13 +416,14 @@ async function scanReceipt() {
 async function createTransaction() {
   creating.value = true
   try {
-    // Ensure date is in ISO format
-    let transactionDate = editForm.value.date
-    if (transactionDate) {
-      transactionDate = new Date(transactionDate).toISOString()
-    } else {
-      transactionDate = new Date().toISOString()
+    // Parse the DD/MM/YYYY date
+    const parsedDate = parseDateInput(editForm.value.date)
+    if (!parsedDate) {
+      alert('Please enter a valid date in DD/MM/YYYY format.')
+      creating.value = false
+      return
     }
+    const transactionDate = parsedDate.toISOString()
     
     // Clean up items
     const items = editForm.value.items.map(item => ({
@@ -400,6 +443,9 @@ async function createTransaction() {
       items: items,
       description: `Receipt from ${editForm.value.merchant_name || 'unknown store'}`
     })
+    
+    // Force refresh the dashboard data to bypass 30s cache
+    await transactionStore.fetchDashboardData(true)
     
     router.push('/transactions')
   } catch (err) {
