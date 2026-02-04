@@ -6,7 +6,7 @@
           <!-- Clickable Logo -->
           <router-link to="/" class="text-2xl font-bold text-white dark:text-white text-gray-900 hover:text-primary-400 transition-colors">
             <div class="flex items-center space-x-2">
-              <img src="/logo-transparent-v3.png" alt="Receipt Logo" class="w-8 h-8 object-contain dark:invert" />
+              <img src="/pwa-icon-192.png" alt="Receipt Logo" class="w-8 h-8 object-contain dark:invert" />
               <span class="hidden sm:block">Receipt</span>
             </div>
           </router-link>
@@ -129,11 +129,22 @@
     
     <!-- Notification Dropdown -->
     <div v-if="showNotifications" @click.stop class="absolute right-4 top-16 w-80 glass-dark dark:glass-dark glass-light rounded-xl shadow-2xl p-4 animate-scale-in z-50">
-      <h3 class="text-lg font-semibold text-white dark:text-white text-gray-900 mb-3">Notifications</h3>
+      <div class="flex justify-between items-center mb-3">
+        <h3 class="text-lg font-semibold text-white dark:text-white text-gray-900">Notifications</h3>
+      </div>
       <div v-if="notifications.length > 0" class="space-y-2 max-h-96 overflow-y-auto">
-        <div v-for="notif in notifications" :key="notif.id" class="p-3 bg-white/5 rounded-lg">
-          <p class="text-sm text-white  dark:text-white text-gray-900">{{ notif.message }}</p>
+        <div v-for="notif in notifications" :key="notif.id" class="p-3 bg-white/5 rounded-lg group relative">
+          <p class="text-sm text-white dark:text-white text-gray-900 pr-6">{{ notif.message }}</p>
           <p class="text-xs text-gray-400 mt-1">{{ notif.time }}</p>
+          <button 
+            @click.stop="dismissNotification(notif.id)"
+            class="absolute top-2 right-2 p-1 text-gray-400 hover:text-white transition-colors opacity-0 group-hover:opacity-100 focus:opacity-100"
+            title="Dismiss notification"
+          >
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
         </div>
       </div>
       <p v-else class="text-gray-400 text-sm text-center py-4">No notifications</p>
@@ -168,7 +179,19 @@ async function fetchNotifications() {
     const response = await api.get('/notifications', { params: { days: 3 } })
     notifications.value = response.data
   } catch (error) {
-    console.error('Failed to fetch notifications:', error)
+    if (error.response?.status !== 404) {
+      console.error('Failed to fetch notifications:', error)
+    }
+    notifications.value = []
+  }
+}
+
+async function dismissNotification(id) {
+  try {
+    await api.post(`/notifications/${id}/dismiss`)
+    notifications.value = notifications.value.filter(n => n.id !== id)
+  } catch (error) {
+    console.error('Failed to dismiss notification:', error)
   }
 }
 

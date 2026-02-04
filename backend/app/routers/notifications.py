@@ -95,6 +95,13 @@ async def list_notifications(
         ]
     })
 
+    # Fetch dismissed notification IDs
+    dismissals_collection = await get_collection("notification_dismissals")
+    dismissed_cursor = dismissals_collection.find({"user_id": user_id})
+    dismissed_ids = set()
+    async for d in dismissed_cursor:
+        dismissed_ids.add(d["notification_id"])
+
     notifications = []
     async for txn in cursor:
         is_recurring = txn.get("is_recurring", False)
@@ -135,6 +142,10 @@ async def list_notifications(
         if not target_date:
             continue
 
+        notification_id = f"{str(txn.get('_id'))}-{target_date.isoformat()}"
+        if notification_id in dismissed_ids:
+            continue
+
         days_left = (target_date - today).days
         if days_left == 0:
             when_text = "today"
@@ -159,7 +170,7 @@ async def list_notifications(
                 message = f"One-off payment {when_text}: {title} {currency}{amount:.2f}"
 
         notifications.append({
-            "id": f"{str(txn.get('_id'))}-{target_date.isoformat()}",
+            "id": notification_id,
             "message": message,
             "time": format_date_ddmmyyyy(target_date),
             "date_sort": target_date.isoformat()
@@ -173,3 +184,20 @@ async def list_notifications(
         del n["date_sort"]
     
     return notifications
+
+
+@router.post("/{notification_id}/dismiss")
+async def dismiss_notification(
+    notification_id: str,
+    user_id: str = Depends(get_current_user_id)
+):
+    """
+    Dismiss a notification.
+    """
+    dismissals_collection = await get_collection("notification_dismissals")
+    await dismissals_collection.update_one(
+        {"user_id": user_id, "notification_id": notification_id},
+        {"$set": {"dismissed_at": datetime.utcnow()}},
+        upsert=True
+    )
+    return {"status": "success"}
