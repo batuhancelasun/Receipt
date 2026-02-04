@@ -119,9 +119,8 @@
             </div>
             <div class="w-full bg-white/10 dark:bg-white/10 bg-gray-200/50 rounded-full h-2">
               <div
-                class="h-2 rounded-full transition-all"
-                :class="[!category.color ? (category.type === 'income' ? 'bg-green-500' : 'bg-red-500') : '']"
-                :style="{ width: category.percentage + '%', backgroundColor: category.color }"
+                :class="[category.type === 'income' ? 'bg-green-500' : 'bg-red-500', 'h-2 rounded-full transition-all']"
+                :style="{ width: category.percentage + '%' }"
               ></div>
             </div>
             <div class="flex items-center justify-between mt-1 text-sm text-gray-400">

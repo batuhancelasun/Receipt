@@ -95,6 +95,7 @@ async def list_transactions(
     category_id: Optional[str] = None,
     start_date: Optional[datetime] = None,
     end_date: Optional[datetime] = None,
+    is_recurring: Optional[bool] = None,
     skip: int = 0,
     limit: int = 100
 ):
@@ -116,6 +117,8 @@ async def list_transactions(
         if end_date:
             date_query["$lte"] = end_date
         query["date"] = date_query
+    if is_recurring is not None:
+        query["is_recurring"] = is_recurring
     
     # Execute query - sort by date desc, then by created_at desc for same-day transactions
     cursor = transactions_collection.find(query) \
@@ -309,6 +312,9 @@ async def get_analytics(
     
     # Get date range
     start_date, end_date = get_period_dates(period, year, month)
+    now = datetime.utcnow()
+    if end_date > now:
+        end_date = now
     
     def parse_txn_date(value):
         if isinstance(value, datetime):

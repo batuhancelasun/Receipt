@@ -209,7 +209,35 @@
       
       <!-- Transactions List -->
       <div class="glass-dark dark:glass-dark glass-light rounded-2xl p-6">
-        <h3 class="text-xl font-semibold text-white dark:text-white text-gray-900 mb-4">All Transactions</h3>
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+          <h3 class="text-xl font-semibold text-white dark:text-white text-gray-900">Transactions</h3>
+          <div class="flex flex-wrap gap-2">
+            <button
+              type="button"
+              @click="activeTab = 'all'"
+              :class="[
+                'px-3 py-1.5 rounded-lg text-sm font-medium transition-all',
+                activeTab === 'all'
+                  ? 'bg-primary-500 text-white shadow-lg shadow-primary-500/30'
+                  : 'bg-white/5 dark:bg-white/5 bg-gray-100/50 text-gray-300 dark:text-gray-300 text-gray-700 hover:bg-white/10'
+              ]"
+            >
+              All
+            </button>
+            <button
+              type="button"
+              @click="activeTab = 'recurring'"
+              :class="[
+                'px-3 py-1.5 rounded-lg text-sm font-medium transition-all',
+                activeTab === 'recurring'
+                  ? 'bg-primary-500 text-white shadow-lg shadow-primary-500/30'
+                  : 'bg-white/5 dark:bg-white/5 bg-gray-100/50 text-gray-300 dark:text-gray-300 text-gray-700 hover:bg-white/10'
+              ]"
+            >
+              Recurring
+            </button>
+          </div>
+        </div>
         
         <div v-if="transactions.length > 0" class="space-y-3">
           <div
@@ -245,6 +273,16 @@
                   </p>
                 </div>
                 
+                <!-- Action Buttons -->
+                <button 
+                  @click.stop="deleteTransaction(txn.id)"
+                  class="hidden sm:inline-flex p-2 bg-red-500/10 text-red-400 rounded-lg opacity-0 group-hover:opacity-100 hover:bg-red-500/20 transition-all"
+                  title="Delete"
+                >
+                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                  </svg>
+                </button>
                 
                 <svg 
                   class="w-5 h-5 text-gray-500 transform transition-transform"
@@ -278,20 +316,9 @@
                 </div>
               </div>
               
-              <div class="mt-4 flex items-center justify-between pt-3 border-t border-white/5">
-                <div class="text-xs text-gray-500">
-                  <span v-if="txn.notes">Note: {{ txn.notes }}</span>
-                  <span v-if="!txn.notes && (!txn.items || txn.items.length === 0)">No additional details</span>
-                </div>
-                <button 
-                  @click.stop="deleteTransaction(txn.id)"
-                  class="flex items-center space-x-2 px-3 py-2 bg-red-500/10 hover:bg-red-500/20 text-red-400 rounded-lg transition-all text-sm font-medium border border-red-500/20"
-                >
-                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                  </svg>
-                  <span>Delete Transaction</span>
-                </button>
+              <div class="mt-3 flex justify-between text-xs text-gray-500">
+                <span v-if="txn.notes">Note: {{ txn.notes }}</span>
+                <span v-if="!txn.notes && (!txn.items || txn.items.length === 0)">No additional details</span>
               </div>
             </div>
           </div>
@@ -304,17 +331,18 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, onMounted, watch } from 'vue'
 import api from '../services/api'
 import { useTransactionStore } from '../stores/transactions'
 import NavigationBar from '../components/NavigationBar.vue'
 
 const transactionStore = useTransactionStore()
-const transactions = computed(() => transactionStore.recentTransactions)
+const transactions = ref([])
 const categories = ref([])
 const showAddForm = ref(false)
 const submitting = ref(false)
 const expandedDetails = ref({})
+const activeTab = ref('all')
 
 const form = ref({
   type: 'expense',
@@ -370,7 +398,16 @@ function toggleDetails(id) {
 }
 
 async function fetchTransactions() {
-  await transactionStore.fetchDashboardData()
+  try {
+    const params = { limit: 100 }
+    if (activeTab.value === 'recurring') {
+      params.is_recurring = true
+    }
+    const response = await api.get('/transactions/', { params })
+    transactions.value = response.data
+  } catch (error) {
+    console.error('Failed to fetch transactions:', error)
+  }
 }
 
 async function fetchCategories() {
@@ -452,6 +489,7 @@ async function handleSubmit() {
     }
     
     showAddForm.value = false
+    await fetchTransactions()
     await transactionStore.fetchDashboardData(true)
   } catch (error) {
     console.error('Failed to create transaction:', error)
@@ -464,5 +502,9 @@ async function handleSubmit() {
 onMounted(() => {
   fetchTransactions()
   fetchCategories()
+})
+
+watch(activeTab, () => {
+  fetchTransactions()
 })
 </script>
