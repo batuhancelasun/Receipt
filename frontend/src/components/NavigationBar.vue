@@ -6,7 +6,7 @@
           <!-- Clickable Logo -->
           <router-link to="/" class="text-2xl font-bold text-white dark:text-white text-gray-900 hover:text-primary-400 transition-colors">
             <div class="flex items-center space-x-2">
-              <img src="/pwa-icon-192.png" alt="Receipt Logo" class="w-8 h-8 object-contain dark:invert" />
+              <img src="/logo-transparent.png" alt="Receipt Logo" class="w-8 h-8 object-contain dark:invert" />
               <span class="hidden sm:block">Receipt</span>
             </div>
           </router-link>
