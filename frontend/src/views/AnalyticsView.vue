@@ -173,7 +173,8 @@ const years = computed(() => {
 })
 
 const analyticsData = computed(() => {
-  const cacheKey = `${selectedPeriod.value}-${selectedYear.value || ''}-${selectedMonth.value || ''}`
+  const monthKey = selectedPeriod.value === 'monthly' ? selectedMonth.value || '' : ''
+  const cacheKey = `${selectedPeriod.value}-${selectedYear.value || ''}-${monthKey}`
   return transactionStore.analytics[cacheKey] || {
     stats: { total_income: 0, total_expenses: 0, net: 0, transaction_count: 0 },
     expense_breakdown: [],

@@ -327,6 +327,27 @@
         <p v-else class="text-gray-400 text-center py-12">No transactions yet</p>
       </div>
     </div>
+    <div v-if="modal.visible" class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm px-4">
+      <div class="w-full max-w-sm rounded-2xl border border-white/10 bg-gray-900/95 p-5 shadow-2xl">
+        <h3 class="text-lg font-semibold text-white mb-2">{{ modal.title }}</h3>
+        <p class="text-sm text-gray-300 mb-5">{{ modal.message }}</p>
+        <div class="flex items-center justify-end gap-2">
+          <button
+            v-if="modal.showCancel"
+            @click="closeModal"
+            class="px-4 py-2 rounded-lg bg-white/10 text-gray-200 hover:bg-white/20 transition"
+          >
+            {{ modal.cancelText }}
+          </button>
+          <button
+            @click="confirmModal"
+            class="px-4 py-2 rounded-lg bg-primary-600 text-white hover:bg-primary-700 transition"
+          >
+            {{ modal.confirmText }}
+          </button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -343,6 +364,38 @@ const showAddForm = ref(false)
 const submitting = ref(false)
 const expandedDetails = ref({})
 const activeTab = ref('all')
+const modal = ref({
+  visible: false,
+  title: '',
+  message: '',
+  confirmText: 'OK',
+  cancelText: 'Cancel',
+  showCancel: false,
+  onConfirm: null
+})
+
+function showModal({ title, message, confirmText = 'OK', cancelText = 'Cancel', showCancel = false, onConfirm = null }) {
+  modal.value = {
+    visible: true,
+    title,
+    message,
+    confirmText,
+    cancelText,
+    showCancel,
+    onConfirm
+  }
+}
+
+function closeModal() {
+  modal.value.visible = false
+  modal.value.onConfirm = null
+}
+
+function confirmModal() {
+  const handler = modal.value.onConfirm
+  closeModal()
+  if (handler) handler()
+}
 
 const form = ref({
   type: 'expense',
@@ -402,6 +455,7 @@ async function fetchTransactions() {
     const params = { limit: 100 }
     if (activeTab.value === 'recurring') {
       params.is_recurring = true
+      params.include_future = true
     }
     const response = await api.get('/transactions/', { params })
     transactions.value = response.data
@@ -420,24 +474,47 @@ async function fetchCategories() {
 }
 
 async function deleteTransaction(id) {
-  if (!confirm('Are you sure you want to delete this transaction?')) return
-
-  try {
-    await transactionStore.deleteTransaction(id)
-    // Remove from expanded state
-    delete expandedDetails.value[id]
-  } catch (error) {
-    console.error('Failed to delete transaction:', error)
-    alert('Failed to delete transaction')
-  }
+  showModal({
+    title: 'Delete Transaction',
+    message: 'Are you sure you want to delete this transaction? This action cannot be undone.',
+    confirmText: 'Delete',
+    cancelText: 'Cancel',
+    showCancel: true,
+    onConfirm: async () => {
+      try {
+        await transactionStore.deleteTransaction(id)
+        delete expandedDetails.value[id]
+        await fetchTransactions()
+      } catch (error) {
+        console.error('Failed to delete transaction:', error)
+        showModal({
+          title: 'Error',
+          message: 'Failed to delete transaction. Please try again.',
+          confirmText: 'OK'
+        })
+      }
+    }
+  })
 }
 
 async function handleSubmit() {
   submitting.value = true
   try {
+    if (!form.value.amount || form.value.amount <= 0) {
+      showModal({
+        title: 'Invalid Amount',
+        message: 'Amount is required and must be greater than 0.',
+        confirmText: 'OK'
+      })
+      return
+    }
     const parsedDate = parseDateInput(form.value.date)
     if (!parsedDate) {
-      alert('Please enter a valid date in DD/MM/YYYY format.')
+      showModal({
+        title: 'Invalid Date',
+        message: 'Please enter a valid date in DD/MM/YYYY format.',
+        confirmText: 'OK'
+      })
       return
     }
 
@@ -464,7 +541,11 @@ async function handleSubmit() {
       if (form.value.recurring_end_date) {
         const parsedEndDate = parseDateInput(form.value.recurring_end_date)
         if (!parsedEndDate) {
-          alert('Please enter a valid recurring end date in DD/MM/YYYY format or leave it empty.')
+          showModal({
+            title: 'Invalid End Date',
+            message: 'Please enter a valid recurring end date in DD/MM/YYYY format or leave it empty.',
+            confirmText: 'OK'
+          })
           return
         }
         payload.recurring_end_date = parsedEndDate.toISOString()
@@ -493,7 +574,11 @@ async function handleSubmit() {
     await transactionStore.fetchDashboardData(true)
   } catch (error) {
     console.error('Failed to create transaction:', error)
-    alert('Failed to create transaction. Please try again.')
+    showModal({
+      title: 'Error',
+      message: 'Failed to create transaction. Please try again.',
+      confirmText: 'OK'
+    })
   } finally {
     submitting.value = false
   }

@@ -96,6 +96,7 @@ async def list_transactions(
     start_date: Optional[datetime] = None,
     end_date: Optional[datetime] = None,
     is_recurring: Optional[bool] = None,
+    include_future: bool = Query(False),
     skip: int = 0,
     limit: int = 100
 ):
@@ -110,6 +111,11 @@ async def list_transactions(
         query["type"] = transaction_type
     if category_id:
         query["category_id"] = category_id
+    now = datetime.utcnow()
+    if not include_future:
+        if end_date is None or end_date > now:
+            end_date = now
+
     if start_date or end_date:
         date_query = {}
         if start_date:
